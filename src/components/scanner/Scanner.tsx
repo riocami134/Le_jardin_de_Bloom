@@ -100,6 +100,7 @@ export function Scanner({ existingPlants, speciesLookup }: ScannerProps) {
             : {
                 scientificName: result.identification.scientificName,
                 commonName: result.identification.commonName,
+                ...result.identification.speciesDetails,
               },
         });
         if (!createResult.success || !createResult.id) throw new Error(createResult.error);
