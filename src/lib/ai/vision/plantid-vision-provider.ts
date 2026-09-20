@@ -73,9 +73,10 @@ export class PlantIdVisionProvider implements PlantVisionProvider {
   constructor(private readonly apiKey: string) {}
 
   async identifyPlant(input: PlantVisionInput): Promise<PlantIdentification> {
+    // Les modificateurs (health, similar_images, classification_level...) sont
+    // des paramètres de requête côté Plant.id v3, pas des champs du corps JSON.
     const data = await postJson<PlantIdIdentificationResponse>(IDENTIFY_URL, this.apiKey, {
       images: [toDataUri(input)],
-      similar_images: false,
     });
 
     const suggestions = data.result?.classification?.suggestions ?? [];
