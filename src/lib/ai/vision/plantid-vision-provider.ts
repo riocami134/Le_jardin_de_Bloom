@@ -120,14 +120,10 @@ export class PlantIdVisionProvider implements PlantVisionProvider {
         spots: hasKeyword("spot", "tache", "rust", "rouille"),
         pestsVisible: hasKeyword("pest", "insect", "mite", "cochenille", "puceron", "aphid"),
       },
-      notes:
-        diseases.length > 0
-          ? `Plant.id suggère : ${diseases
-              .slice(0, 2)
-              .map((d) => d.name)
-              .filter(Boolean)
-              .join(", ")}.`
-          : "Aucun problème notable détecté par Plant.id.",
+      // Pas de note ici : les suggestions brutes de Plant.id (souvent en
+      // anglais, ex. "feeding damage by insects") ne doivent jamais être
+      // affichées telles quelles — seuls les flags structurés ci-dessus
+      // alimentent le discours de Bloom (voir bloom-service).
     };
   }
 }
