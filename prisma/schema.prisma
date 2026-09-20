@@ -1,0 +1,433 @@
+// Le Jardin de Bloom — schéma de données
+// Voir docs/database.md pour la description et les décisions de modélisation.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// UTILISATEUR
+// ============================================================
+
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  passwordHash   String
+  name           String?
+  city           String?
+  plantLocationType String? // "interieur" | "balcon" | "jardin" | "plusieurs"
+  pets           String[]  @default([]) // "chat" | "chien" | "lapin"
+  plantCountRange String?  // "1-5" | "6-15" | "16-30" | "30+"
+  onboardedAt    DateTime?
+  consentLocation   Boolean @default(false)
+  consentNotifications Boolean @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  plants         Plant[]
+  reminders      Reminder[]
+  notifications  Notification[]
+  conversations  Conversation[]
+  achievements   UserAchievement[]
+  virtualGarden  VirtualGarden?
+
+  @@index([email])
+}
+
+// ============================================================
+// ESPÈCES (référentiel général — indépendant de l'utilisateur)
+// ============================================================
+
+enum PlantCategory {
+  succulentes
+  palmiers
+  fleuries
+  aromatiques
+  potager
+  fruits
+  arbres
+  arbustes
+  grimpantes
+  retombantes
+  tropicales
+  mediterraneennes
+  jardin
+  bulbes
+  fougeres
+  carnivores
+  aquatiques
+  bonsais
+}
+
+model PlantSpecies {
+  id               String   @id @default(cuid())
+  commonName       String
+  scientificName   String   @unique
+  family           String?
+  origin           String?
+  category         PlantCategory
+  light            String
+  temperatureRange String?
+  humidity         String?
+  watering         String
+  fertilizing      String?
+  pruning          String?
+  repotting        String?
+  propagation      String?
+  commonProblems   String[] @default([])
+  pests            String[] @default([])
+  toxicity         String?
+  difficulty       String   @default("facile") // "facile" | "modere" | "exigeant"
+  petSafe          Boolean  @default(true)
+  indoorOutdoor    String   @default("interieur") // "interieur" | "exterieur" | "les-deux"
+  imageUrl         String?
+  similarSpeciesIds String[] @default([])
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  plants           Plant[]
+
+  @@index([category])
+}
+
+// ============================================================
+// PLANTE (instance utilisateur)
+// ============================================================
+
+enum PlantStatus {
+  healthy
+  watch
+  attention
+  unknown
+}
+
+model Plant {
+  id           String       @id @default(cuid())
+  userId       String
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  speciesId    String?
+  species      PlantSpecies? @relation(fields: [speciesId], references: [id])
+  name         String
+  nickname     String?
+  notes        String?
+  status       PlantStatus  @default(unknown)
+  healthScore  Int?
+  addedAt      DateTime     @default(now())
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  deletedAt    DateTime?
+
+  locationId    String?
+  location      PlantLocation? @relation(fields: [locationId], references: [id])
+  environmentId String?
+  environment   Environment?   @relation(fields: [environmentId], references: [id])
+
+  photos          PlantPhoto[]
+  healthAnalyses  HealthAnalysis[]
+  careActions     CareAction[]
+  reminders       Reminder[]
+  gardenItems     GardenItem[]
+
+  @@index([userId])
+  @@index([speciesId])
+  @@index([userId, status])
+}
+
+model PlantLocation {
+  id               String   @id @default(cuid())
+  name             String
+  room             String?
+  indoorOutdoor    String   @default("interieur")
+  windowOrientation String? // nord | nord-est | est | sud-est | sud | sud-ouest | ouest | nord-ouest
+  distanceToWindowM Float?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  plants Plant[]
+}
+
+model Environment {
+  id          String   @id @default(cuid())
+  name        String?
+  temperatureC Float?
+  humidityPct  Float?
+  lightDescription String?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  plants Plant[]
+}
+
+// ============================================================
+// PHOTOS & ANALYSE DE SANTÉ
+// ============================================================
+
+model PlantPhoto {
+  id         String   @id @default(cuid())
+  plantId    String
+  plant      Plant    @relation(fields: [plantId], references: [id], onDelete: Cascade)
+  storageKey String   // clé objet privée — jamais une URL publique permanente
+  caption    String?
+  takenAt    DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  healthAnalyses HealthAnalysis[]
+
+  @@index([plantId])
+}
+
+model HealthAnalysis {
+  id              String   @id @default(cuid())
+  plantId         String
+  plant           Plant    @relation(fields: [plantId], references: [id], onDelete: Cascade)
+  photoId         String?
+  photo           PlantPhoto? @relation(fields: [photoId], references: [id])
+  score           Int      // indice visuel indicatif, 0-100 — jamais un diagnostic certain
+  confidence      Float    // 0-1
+  observations    Json     // { yellowLeaves, brownLeaves, wilting, spots, pestsVisible, ... }
+  hypotheses      Json?
+  recommendations Json?
+  createdAt       DateTime @default(now())
+
+  symptoms Symptom[]
+
+  @@index([plantId])
+}
+
+model Symptom {
+  id               String         @id @default(cuid())
+  healthAnalysisId String
+  healthAnalysis   HealthAnalysis @relation(fields: [healthAnalysisId], references: [id], onDelete: Cascade)
+  code             String // ex: "yellow_leaves", "brown_spots", "wilting"
+  severity         String @default("low") // "low" | "medium" | "high"
+  note             String?
+
+  @@index([healthAnalysisId])
+}
+
+// ============================================================
+// SOINS
+// ============================================================
+
+enum CareActionType {
+  watering
+  fertilizing
+  repotting
+  pruning
+  cleaning
+  location_change
+  analysis
+}
+
+model CareAction {
+  id        String         @id @default(cuid())
+  plantId   String
+  plant     Plant          @relation(fields: [plantId], references: [id], onDelete: Cascade)
+  type      CareActionType
+  note      String?
+  performedAt DateTime     @default(now())
+  createdAt DateTime       @default(now())
+
+  wateringEvent    WateringEvent?
+  fertilizingEvent FertilizingEvent?
+  repottingEvent   RepottingEvent?
+  pruningEvent     PruningEvent?
+
+  @@index([plantId, type])
+}
+
+model WateringEvent {
+  id           String     @id @default(cuid())
+  careActionId String     @unique
+  careAction   CareAction @relation(fields: [careActionId], references: [id], onDelete: Cascade)
+  amountMl     Int?
+  substrateWasDry Boolean?
+}
+
+model FertilizingEvent {
+  id           String     @id @default(cuid())
+  careActionId String     @unique
+  careAction   CareAction @relation(fields: [careActionId], references: [id], onDelete: Cascade)
+  product      String?
+  dilution     String?
+}
+
+model RepottingEvent {
+  id           String     @id @default(cuid())
+  careActionId String     @unique
+  careAction   CareAction @relation(fields: [careActionId], references: [id], onDelete: Cascade)
+  potSizeCm    Int?
+  soilType     String?
+}
+
+model PruningEvent {
+  id           String     @id @default(cuid())
+  careActionId String     @unique
+  careAction   CareAction @relation(fields: [careActionId], references: [id], onDelete: Cascade)
+  partsRemoved String?
+}
+
+// ============================================================
+// MÉTÉO
+// ============================================================
+
+model WeatherSnapshot {
+  id              String   @id @default(cuid())
+  city            String
+  temperatureC    Float
+  humidityPct     Float
+  rainProbability Float
+  rainAmountMm    Float    @default(0)
+  windSpeedKmh    Float
+  condition       String
+  timestamp       DateTime @default(now())
+
+  @@index([city, timestamp])
+}
+
+// ============================================================
+// RAPPELS & NOTIFICATIONS
+// ============================================================
+
+enum ReminderType {
+  check_substrate
+  observe
+  fertilize
+  repot
+  protect_from_cold
+  check_location
+}
+
+enum ReminderStatus {
+  pending
+  done
+  dismissed
+}
+
+model Reminder {
+  id           String         @id @default(cuid())
+  userId       String
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plantId      String?
+  plant        Plant?         @relation(fields: [plantId], references: [id], onDelete: Cascade)
+  type         ReminderType
+  message      String
+  scheduledFor DateTime
+  status       ReminderStatus @default(pending)
+  createdAt    DateTime       @default(now())
+
+  @@index([userId, scheduledFor])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId, readAt])
+}
+
+// ============================================================
+// BLOOM — CONVERSATIONS
+// ============================================================
+
+model Conversation {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plantId   String?
+  context   String?  // ex: "diagnosis" | "onboarding" | "advice"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages ConversationMessage[]
+
+  @@index([userId])
+}
+
+model ConversationMessage {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String       // "user" | "bloom"
+  content        String
+  emotion        String?      // BloomEmotion quand role = "bloom"
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId])
+}
+
+// ============================================================
+// BADGES
+// ============================================================
+
+model Achievement {
+  id          String   @id // slug stable, ex: "first_plant"
+  family      String   // ex: "premiers_pas"
+  name        String
+  description String
+  icon        String
+  sortOrder   Int      @default(0)
+
+  users UserAchievement[]
+}
+
+model UserAchievement {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id])
+  unlockedAt    DateTime    @default(now())
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+}
+
+// ============================================================
+// JARDIN VIRTUEL
+// ============================================================
+
+enum GardenSeason {
+  spring
+  summer
+  autumn
+  winter
+}
+
+model VirtualGarden {
+  id        String       @id @default(cuid())
+  userId    String       @unique
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  season    GardenSeason @default(spring)
+  level     Int          @default(1)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  items GardenItem[]
+}
+
+model GardenItem {
+  id              String        @id @default(cuid())
+  virtualGardenId String
+  virtualGarden   VirtualGarden @relation(fields: [virtualGardenId], references: [id], onDelete: Cascade)
+  plantId         String?
+  plant           Plant?        @relation(fields: [plantId], references: [id], onDelete: SetNull)
+  type            String        // "sprout" | "flower" | "shrub" | "tree" | "decoration"
+  growthStage     Int           @default(1)
+  originAction    String?       // ex: "plant_added" | "care_streak" | "health_improved"
+  unlockedAt      DateTime      @default(now())
+
+  @@index([virtualGardenId])
+}

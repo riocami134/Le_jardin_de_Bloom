@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="Illustration d'un Monstera">
+  <rect width="400" height="400" rx="32" fill="#F3D0B8"/>
+  <circle cx="200" cy="200" r="140" fill="#91B398"/>
+  <path d="M200 90c60 0 100 55 100 110 0 45-30 80-70 90 10-30-5-55-30-60 20 20 10 55-15 65-35-15-55-55-55-95 0-60 40-110 70-110z" fill="#6AAC96"/>
+  <circle cx="170" cy="150" r="10" fill="#F3D0B8"/>
+  <circle cx="230" cy="180" r="8" fill="#F3D0B8"/>
+  <circle cx="150" cy="200" r="7" fill="#F3D0B8"/>
+</svg>
