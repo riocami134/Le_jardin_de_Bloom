@@ -15,7 +15,7 @@ export function Sidebar({ userName }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden w-64 shrink-0 flex-col gap-6 border-r border-cocoa/10 bg-ivory px-5 py-8 sm:flex">
+    <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-6 overflow-y-auto border-r border-cocoa/10 bg-ivory px-5 py-8 sm:flex">
       <Link href="/" className="font-heading text-h3 text-cocoa">
         🌱 {SITE_CONFIG.name}
       </Link>
