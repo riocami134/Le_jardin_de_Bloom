@@ -21,7 +21,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
-    const health = await getVisionProvider().analyzePlantHealth({ imageUrl: `${file.name}-${file.size}` });
+    const imageBase64 = Buffer.from(await file.arrayBuffer()).toString("base64");
+    const health = await getVisionProvider().analyzePlantHealth({ imageBase64, mimeType: file.type });
 
     const needsQuestions = health.confidence < 0.65;
     const questions = needsQuestions

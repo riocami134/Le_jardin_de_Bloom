@@ -19,8 +19,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
+    const imageBase64 = Buffer.from(await file.arrayBuffer()).toString("base64");
     const identification = await getVisionProvider().identifyPlant({
-      imageUrl: `${file.name}-${file.size}`,
+      imageBase64,
+      mimeType: file.type,
     });
 
     return NextResponse.json({ identification });

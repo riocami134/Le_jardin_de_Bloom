@@ -1,5 +1,6 @@
 import { getEnv } from "@/config/env";
 import { MockVisionProvider } from "./vision/mock-vision-provider";
+import { PlantIdVisionProvider } from "./vision/plantid-vision-provider";
 import { MockBloomProvider } from "./bloom/mock-bloom-provider";
 import type { PlantVisionProvider } from "./vision/types";
 import type { BloomReasoningProvider } from "./bloom/types";
@@ -11,9 +12,9 @@ export function getVisionProvider(): PlantVisionProvider {
   if (visionProvider) return visionProvider;
   const env = getEnv();
   if (env.AI_PROVIDER === "real") {
-    throw new Error(
-      "AI_PROVIDER=real mais aucun RealVisionProvider n'est encore implémenté. Voir docs/ai-architecture.md.",
-    );
+    // env.ts garantit AI_API_KEY non vide quand AI_PROVIDER=real.
+    visionProvider = new PlantIdVisionProvider(env.AI_API_KEY!);
+    return visionProvider;
   }
   visionProvider = new MockVisionProvider();
   return visionProvider;
