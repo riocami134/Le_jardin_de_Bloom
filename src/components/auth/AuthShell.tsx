@@ -1,21 +1,23 @@
 import type { ReactNode } from "react";
 import { BloomCharacter } from "@/components/bloom/BloomCharacter";
 import { SITE_CONFIG } from "@/config/site";
+import type { BloomEmotion } from "@/types";
 
 export interface AuthShellProps {
   title: string;
   subtitle?: string;
   children: ReactNode;
   footer?: ReactNode;
+  bloomEmotion?: BloomEmotion;
 }
 
 /** Habillage partagé login/register — pitch produit + Bloom (contenu public). */
-export function AuthShell({ title, subtitle, children, footer }: AuthShellProps) {
+export function AuthShell({ title, subtitle, children, footer, bloomEmotion = "happy" }: AuthShellProps) {
   return (
     <div className="flex min-h-dvh items-center justify-center bg-taupe px-4 py-10">
       <div className="w-full max-w-md space-y-6">
         <div className="flex flex-col items-center gap-3 text-center text-ivory">
-          <BloomCharacter emotion="happy" size="lg" animated />
+          <BloomCharacter emotion={bloomEmotion} size="lg" animated />
           <div>
             <p className="text-small font-semibold uppercase tracking-wide text-ivory/80">
               {SITE_CONFIG.tagline}
