@@ -153,7 +153,10 @@ export function Scanner({ existingPlants, speciesLookup }: ScannerProps) {
             ref={inputRef}
             type="file"
             accept="image/jpeg,image/png,image/webp"
-            capture="environment"
+            // Pas d'attribut `capture` : sur beaucoup de navigateurs mobiles
+            // (Android notamment), il force l'ouverture directe de
+            // l'appareil photo et masque l'option "Galerie" du sélecteur
+            // natif — alors que le bouton propose explicitement les deux.
             className="hidden"
             onChange={(e) => e.target.files?.[0] && handleFileSelected(e.target.files[0])}
           />
