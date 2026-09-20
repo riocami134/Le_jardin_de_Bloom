@@ -22,12 +22,10 @@ export function getVisionProvider(): PlantVisionProvider {
 
 export function getBloomProvider(): BloomReasoningProvider {
   if (bloomProvider) return bloomProvider;
-  const env = getEnv();
-  if (env.AI_PROVIDER === "real") {
-    throw new Error(
-      "AI_PROVIDER=real mais aucun RealBloomProvider n'est encore implémenté. Voir docs/ai-architecture.md.",
-    );
-  }
+  // AI_PROVIDER=real active PlantIdVisionProvider (identification/santé) ci-dessus.
+  // Aucun RealBloomProvider (messages conversationnels de Bloom) n'existe encore :
+  // on reste en mock ici tant qu'il n'est pas implémenté, pour ne jamais casser
+  // le Scanner à cause d'une fonctionnalité non liée. Voir docs/ai-architecture.md.
   bloomProvider = new MockBloomProvider();
   return bloomProvider;
 }
