@@ -9,6 +9,14 @@ export const createPlantSchema = z.object({
   notes: z.string().trim().max(2000).optional(),
   locationId: z.string().cuid().optional(),
   environmentId: z.string().cuid().optional(),
+  // Fourni par le Scanner quand l'espèce identifiée n'a pas de speciesId
+  // connu : permet de créer automatiquement une fiche dans Explorer.
+  identification: z
+    .object({
+      scientificName: z.string().trim().min(1),
+      commonName: z.string().trim().min(1),
+    })
+    .optional(),
 });
 export type CreatePlantInput = z.infer<typeof createPlantSchema>;
 
