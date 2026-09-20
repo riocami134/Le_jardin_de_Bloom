@@ -26,4 +26,13 @@ describe("MockBloomProvider", () => {
     expect(recommendation.confidence).toBeLessThan(1);
     expect(recommendation.explanation).not.toMatch(/certainement|définitivement/i);
   });
+
+  it("signale les nuisibles détectés plutôt que de rester générique", async () => {
+    const context = { plantName: "Basilic", observations: { yellowLeaves: false, brownLeaves: false, wilting: false, spots: false, pestsVisible: true } };
+    const message = await provider.generateBloomMessage(context);
+    expect(message.priority).toBe("high");
+    const recommendation = await provider.generateRecommendation(context);
+    expect(recommendation.priority).toBe("high");
+    expect(recommendation.reason).toMatch(/nuisible|dégâts|insecte/i);
+  });
 });

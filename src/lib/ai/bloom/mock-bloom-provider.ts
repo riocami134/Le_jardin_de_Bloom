@@ -19,7 +19,9 @@ export class MockBloomProvider implements BloomReasoningProvider {
     const flags = context.observations ?? {};
     const selected: BloomQuestion[] = [];
 
-    if (flags.yellowLeaves || flags.wilting) {
+    if (flags.pestsVisible) {
+      selected.push(ALL_QUESTIONS[3]!, ALL_QUESTIONS[1]!);
+    } else if (flags.yellowLeaves || flags.wilting) {
       selected.push(ALL_QUESTIONS[0]!, ALL_QUESTIONS[1]!);
     } else if (flags.spots || flags.brownLeaves) {
       selected.push(ALL_QUESTIONS[2]!, ALL_QUESTIONS[3]!);
@@ -35,6 +37,15 @@ export class MockBloomProvider implements BloomReasoningProvider {
     const flags = context.observations ?? {};
     const plant = context.plantName;
 
+    if (flags.pestsVisible) {
+      return {
+        action: "Inspecter la plante de près",
+        reason: "Bloom a repéré des signes qui ressemblent à des nuisibles ou des dégâts d'insectes.",
+        explanation: `Regarde le dessous des feuilles de ${plant} et la base des tiges — s'il y a des petits points, toiles ou traces de morsures, isole-la des autres plantes le temps de traiter.`,
+        confidence: 0.62,
+        priority: "high",
+      };
+    }
     if (flags.yellowLeaves) {
       return {
         action: "Espacer les prochains arrosages",
@@ -76,6 +87,9 @@ export class MockBloomProvider implements BloomReasoningProvider {
     const flags = context.observations ?? {};
     const plant = context.plantName;
 
+    if (flags.pestsVisible) {
+      return { emotion: "worried", message: `Bloom a remarqué quelque chose sur ${plant} qui pourrait être des nuisibles — jette un œil de près.`, priority: "high" };
+    }
     if (flags.wilting) {
       return { emotion: "worried", message: `Psst… ${plant} mérite peut-être une petite vérification.`, priority: "high" };
     }
