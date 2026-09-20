@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { BloomCharacter } from "@/components/bloom/BloomCharacter";
 import { Card } from "@/components/ui/Card";
 import { Chip } from "@/components/ui/Chip";
-import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { CityAutocomplete } from "@/components/onboarding/CityAutocomplete";
 import { Progress } from "@/components/ui/Progress";
 import { completeOnboardingAction } from "@/server/actions/onboarding-actions";
 import type { OnboardingInput } from "@/lib/validation/onboarding";
@@ -89,11 +89,9 @@ export default function OnboardingPage() {
         <Card className="space-y-5">
           {step === 0 && (
             <StepShell emotion="cute" title="Où vis-tu ?" subtitle="Ça nous aide à te donner la bonne météo.">
-              <Input
-                label="Ta ville"
+              <CityAutocomplete
                 value={draft.city ?? ""}
-                onChange={(e) => setDraft((p) => ({ ...p, city: e.target.value }))}
-                placeholder="Lyon, Paris, Marseille…"
+                onChange={(city) => setDraft((p) => ({ ...p, city }))}
               />
             </StepShell>
           )}
