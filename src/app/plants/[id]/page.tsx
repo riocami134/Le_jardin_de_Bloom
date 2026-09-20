@@ -11,7 +11,7 @@ import { Tabs } from "@/components/ui/Tabs";
 import { Card } from "@/components/ui/Card";
 import { PlantHealthCard } from "@/components/plants/PlantHealthCard";
 import { EnvironmentCard } from "@/components/plants/EnvironmentCard";
-import { LocationCard } from "@/components/plants/LocationCard";
+import { LocationEditor } from "@/components/plants/LocationEditor";
 import { CareHistory } from "@/components/plants/CareHistory";
 import { PlantTimeline, type TimelineEntry } from "@/components/plants/PlantTimeline";
 import { PlantPhoto } from "@/components/plants/PlantPhoto";
@@ -104,14 +104,19 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
             label: "Environnement",
             content: (
               <div className="space-y-4">
-                {plant.location && (
-                  <LocationCard
-                    name={plant.location.name}
-                    room={plant.location.room}
-                    indoorOutdoor={plant.location.indoorOutdoor}
-                    windowOrientation={plant.location.windowOrientation}
-                  />
-                )}
+                <LocationEditor
+                  plantId={plant.id}
+                  initial={
+                    plant.location
+                      ? {
+                          name: plant.location.name,
+                          room: plant.location.room,
+                          indoorOutdoor: plant.location.indoorOutdoor,
+                          windowOrientation: plant.location.windowOrientation,
+                        }
+                      : null
+                  }
+                />
                 {plant.environment && (
                   <EnvironmentCard
                     temperatureC={plant.environment.temperatureC}
@@ -119,13 +124,6 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
                     lightDescription={plant.environment.lightDescription}
                     notes={plant.environment.notes}
                   />
-                )}
-                {!plant.location && !plant.environment && (
-                  <Card>
-                    <p className="text-small text-cocoa/60">
-                      Aucun emplacement renseigné pour l&apos;instant.
-                    </p>
-                  </Card>
                 )}
               </div>
             ),
