@@ -58,9 +58,13 @@ export class RecommendationEngine {
 
     return {
       action: "Continuer le suivi habituel",
-      reason: "Aucun signal particulier ne ressort du contexte actuel.",
+      reason: "Rien à signaler pour le moment.",
       explanation: "Bloom garde un œil bienveillant sur cette plante.",
-      confidence: 0.5,
+      // Confiance volontairement haute : l'absence de signal n'est pas une
+      // incertitude, c'est un état confirmé — n'affiche donc pas le
+      // bandeau "Bloom n'est pas totalement certain" pour ce cas (voir
+      // seuil dans BloomAdvice).
+      confidence: 0.85,
       priority: "low",
     };
   }
