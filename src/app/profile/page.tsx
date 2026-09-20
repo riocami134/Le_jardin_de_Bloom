@@ -41,7 +41,7 @@ export default async function ProfilePage() {
         </Card>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-4">
         <Link href="/settings">
           <Card padded className="flex items-center justify-between !py-3">
             <span className="text-body text-cocoa">⚙️ Paramètres</span>
