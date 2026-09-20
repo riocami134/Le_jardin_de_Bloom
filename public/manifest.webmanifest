@@ -1,0 +1,13 @@
+{
+  "name": "Le Jardin de Bloom",
+  "short_name": "Jardin de Bloom",
+  "description": "Petite plante, grande aventure ! Gérez vos plantes et faites grandir votre jardin virtuel avec Bloom.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#A27E6F",
+  "theme_color": "#A27E6F",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
