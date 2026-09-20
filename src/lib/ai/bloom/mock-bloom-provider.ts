@@ -41,7 +41,7 @@ export class MockBloomProvider implements BloomReasoningProvider {
       return {
         action: "Inspecter la plante de près",
         reason: "Bloom a repéré des signes qui ressemblent à des nuisibles ou des dégâts d'insectes.",
-        explanation: `Regarde le dessous des feuilles de ${plant} et la base des tiges — s'il y a des petits points, toiles ou traces de morsures, isole-la des autres plantes le temps de traiter.`,
+        explanation: `Regarde le dessous des feuilles de ${plant} et la base des tiges, s'il y a des petits points, toiles ou traces de morsures, isole-la des autres plantes le temps de traiter.`,
         confidence: 0.62,
         priority: "high",
       };
@@ -59,7 +59,7 @@ export class MockBloomProvider implements BloomReasoningProvider {
       return {
         action: "Observer l'évolution sur quelques jours",
         reason: "Les taches ou bords bruns peuvent venir de l'air ambiant autant que d'un souci d'arrosage.",
-        explanation: `Prends une photo de ${plant} dans quelques jours pour comparer — pas besoin d'agir dans l'urgence.`,
+        explanation: `Prends une photo de ${plant} dans quelques jours pour comparer, pas besoin d'agir dans l'urgence.`,
         confidence: 0.55,
         priority: "low",
       };
@@ -77,7 +77,7 @@ export class MockBloomProvider implements BloomReasoningProvider {
     return {
       action: "Continuer le suivi habituel",
       reason: "Rien à signaler pour le moment.",
-      explanation: `${plant} semble suivre son rythme normal — Bloom garde un œil bienveillant.`,
+      explanation: `${plant} semble suivre son rythme normal, Bloom garde un œil bienveillant.`,
       // Confiance volontairement haute : l'absence de signal n'est pas une
       // incertitude, c'est un état confirmé — n'affiche donc pas le bandeau
       // "Bloom n'est pas totalement certain" pour ce cas (voir seuil dans
@@ -92,7 +92,7 @@ export class MockBloomProvider implements BloomReasoningProvider {
     const plant = context.plantName;
 
     if (flags.pestsVisible) {
-      return { emotion: "worried", message: `Bloom a remarqué quelque chose sur ${plant} qui pourrait être des nuisibles — jette un œil de près.`, priority: "high" };
+      return { emotion: "worried", message: `Bloom a remarqué quelque chose sur ${plant} qui pourrait être des nuisibles, jette un œil de près.`, priority: "high" };
     }
     if (flags.wilting) {
       return { emotion: "worried", message: `Psst… ${plant} mérite peut-être une petite vérification.`, priority: "high" };
@@ -101,7 +101,7 @@ export class MockBloomProvider implements BloomReasoningProvider {
       return { emotion: "focused", message: `Bloom observe ${plant} de près, tout va bien se passer 🌱`, priority: "normal" };
     }
     if (context.weatherCondition === "rainy") {
-      return { emotion: "advising", message: "Pluie prévue demain — pas besoin d'arroser les plantes extérieures !", priority: "normal" };
+      return { emotion: "advising", message: "Pluie prévue demain, pas besoin d'arroser les plantes extérieures !", priority: "normal" };
     }
 
     return { emotion: "happy", message: `${plant} se porte bien aujourd'hui !`, priority: "low" };
