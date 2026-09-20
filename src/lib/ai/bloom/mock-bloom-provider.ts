@@ -76,9 +76,13 @@ export class MockBloomProvider implements BloomReasoningProvider {
 
     return {
       action: "Continuer le suivi habituel",
-      reason: "Rien de particulier ne ressort des observations disponibles.",
+      reason: "Rien à signaler pour le moment.",
       explanation: `${plant} semble suivre son rythme normal — Bloom garde un œil bienveillant.`,
-      confidence: 0.6,
+      // Confiance volontairement haute : l'absence de signal n'est pas une
+      // incertitude, c'est un état confirmé — n'affiche donc pas le bandeau
+      // "Bloom n'est pas totalement certain" pour ce cas (voir seuil dans
+      // BloomAdvice, même logique que recommendation-engine.ts).
+      confidence: 0.85,
       priority: "low",
     };
   }
