@@ -20,10 +20,38 @@ export async function createPlantAction(input: CreatePlantInput): Promise<Action
   const userId = await requireUserId();
 
   const plant = await prisma.$transaction(async (tx) => {
+    let speciesId = parsed.data.speciesId;
+
+    // Le Scanner identifie parfois une espèce absente de notre catalogue
+    // Explorer : on l'y ajoute automatiquement à partir des infos connues,
+    // pour que toute plante identifiée enrichisse la base au fil du temps.
+    if (!speciesId && parsed.data.identification) {
+      const { scientificName, commonName } = parsed.data.identification;
+      const existingSpecies = await tx.plantSpecies.findUnique({ where: { scientificName } });
+      if (existingSpecies) {
+        speciesId = existingSpecies.id;
+      } else {
+        const newSpecies = await tx.plantSpecies.create({
+          data: {
+            commonName,
+            scientificName,
+            category: "jardin",
+            light: "Non renseigné — espèce ajoutée automatiquement via le Scanner",
+            watering: "Non renseigné — espèce ajoutée automatiquement via le Scanner",
+            difficulty: "modere",
+            petSafe: false,
+            toxicity: "Non vérifiée — renseigne-toi avant d'exposer cette plante à tes animaux",
+            indoorOutdoor: "les-deux",
+          },
+        });
+        speciesId = newSpecies.id;
+      }
+    }
+
     const created = await tx.plant.create({
       data: {
         userId,
-        speciesId: parsed.data.speciesId,
+        speciesId,
         name: parsed.data.name,
         nickname: parsed.data.nickname,
         notes: parsed.data.notes,
@@ -60,6 +88,7 @@ export async function createPlantAction(input: CreatePlantInput): Promise<Action
   });
 
   revalidatePath("/plants");
+  revalidatePath("/explore");
   revalidatePath("/");
   return { success: true, id: plant.id };
 }

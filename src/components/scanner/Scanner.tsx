@@ -90,7 +90,18 @@ export function Scanner({ existingPlants, speciesLookup }: ScannerProps) {
       let plantId = saveTarget;
       if (saveTarget === "new") {
         const speciesId = speciesLookup[result.identification.scientificName];
-        const createResult = await createPlantAction({ name: newPlantName || result.identification.commonName, speciesId });
+        const createResult = await createPlantAction({
+          name: newPlantName || result.identification.commonName,
+          speciesId,
+          // Si l'espèce n'est pas encore dans Explorer, le serveur l'y
+          // ajoute automatiquement à partir de cette identification.
+          identification: speciesId
+            ? undefined
+            : {
+                scientificName: result.identification.scientificName,
+                commonName: result.identification.commonName,
+              },
+        });
         if (!createResult.success || !createResult.id) throw new Error(createResult.error);
         plantId = createResult.id;
       }
