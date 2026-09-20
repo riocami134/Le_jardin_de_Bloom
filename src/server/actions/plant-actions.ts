@@ -123,9 +123,16 @@ export async function deletePlantAction(plantId: string): Promise<ActionResult> 
     return { success: false, error: "Plante introuvable" };
   }
 
-  await prisma.plant.update({ where: { id: plantId }, data: { deletedAt: new Date() } });
+  await prisma.$transaction([
+    prisma.plant.update({ where: { id: plantId }, data: { deletedAt: new Date() } }),
+    // La suppression est un soft delete (deletedAt) : la cascade SQL onDelete
+    // ne se déclenche pas, donc les éléments du jardin liés à cette plante
+    // doivent être retirés explicitement pour ne pas y rester "orphelins".
+    prisma.gardenItem.deleteMany({ where: { plantId } }),
+  ]);
 
   revalidatePath("/plants");
+  revalidatePath("/garden");
   revalidatePath("/");
   return { success: true };
 }
