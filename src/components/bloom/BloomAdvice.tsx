@@ -31,11 +31,6 @@ export function BloomAdvice({ recommendation, emotion = "advising" }: BloomAdvic
           <Badge tone={PRIORITY_TONE[recommendation.priority]}>{PRIORITY_LABEL[recommendation.priority]}</Badge>
         </div>
         <p className="text-small text-cocoa/70">{recommendation.explanation}</p>
-        {recommendation.confidence < 0.7 && (
-          <p className="text-caption italic text-cocoa/50">
-            Bloom n&apos;est pas totalement certain — {recommendation.reason.toLowerCase()}
-          </p>
-        )}
       </div>
     </Card>
   );
