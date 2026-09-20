@@ -27,7 +27,7 @@ export function PlantHealthCard({ status, score, scoreHistory = [] }: PlantHealt
         </Badge>
       </div>
       {typeof score === "number" ? (
-        <Progress value={score} label="Indice visuel indicatif" tone={TONE_BY_STATUS[status]} />
+        <Progress value={score} tone={TONE_BY_STATUS[status]} />
       ) : (
         <p className="text-small text-cocoa/60">Pas encore d&apos;analyse — scanne cette plante pour un premier indice.</p>
       )}
@@ -43,9 +43,6 @@ export function PlantHealthCard({ status, score, scoreHistory = [] }: PlantHealt
           ))}
         </div>
       )}
-      <p className="text-caption text-cocoa/50">
-        Indice visuel indicatif — pas un diagnostic scientifique.
-      </p>
     </Card>
   );
 }
