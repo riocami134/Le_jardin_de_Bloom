@@ -59,6 +59,19 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       const previousScore = plant.healthScore;
       await tx.plant.update({ where: { id }, data: { healthScore: score, status } });
 
+      // Première vraie photo pour une espèce ajoutée automatiquement via le
+      // Scanner (sans photo de référence) : elle devient l'illustration de
+      // cette espèce dans Explorer — légalement plus sûr que d'aller
+      // chercher une image externe, et ça complète le catalogue au fil des
+      // scans plutôt que de rester avec une simple icône.
+      if (plant.speciesId) {
+        const species = await tx.plantSpecies.findUnique({ where: { id: plant.speciesId }, select: { imageUrl: true } });
+        if (species && !species.imageUrl) {
+          const photoUrl = await storage.getSignedUrl(key);
+          await tx.plantSpecies.update({ where: { id: plant.speciesId }, data: { imageUrl: photoUrl } });
+        }
+      }
+
       await tx.userAchievement.upsert({
         where: { userId_achievementId: { userId, achievementId: "first_scan" } },
         update: {},
@@ -81,6 +94,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     });
 
     revalidatePath(`/plants/${id}`);
+    revalidatePath("/explore");
     revalidatePath("/");
     return NextResponse.json(result);
   } catch (error) {
