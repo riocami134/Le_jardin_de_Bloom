@@ -21,9 +21,17 @@ export function Modal({ open, onClose, title, children, className }: ModalProps)
       if (event.key === "Escape") onClose();
     }
     document.addEventListener("keydown", onKeyDown);
-    dialogRef.current?.focus();
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [open, onClose]);
+
+  // Effet séparé et dépendant uniquement de `open` : sinon, un `onClose`
+  // recréé à chaque rendu du parent (ex. fonction fléchée inline) redonnait
+  // le focus à la boîte de dialogue à chaque frappe dans un champ interne,
+  // fermant le clavier mobile après chaque lettre.
+  useEffect(() => {
+    if (!open) return;
+    dialogRef.current?.focus();
+  }, [open]);
 
   if (!open) return null;
 
