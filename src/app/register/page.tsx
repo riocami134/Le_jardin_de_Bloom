@@ -25,6 +25,7 @@ export default function RegisterPage() {
     <AuthShell
       title="Rejoins Le Jardin de Bloom"
       subtitle="Petite plante, grande aventure !"
+      bloomEmotion="excited"
       footer={
         <>
           Déjà un compte ?{" "}
