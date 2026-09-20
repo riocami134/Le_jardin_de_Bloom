@@ -127,7 +127,7 @@ export function Scanner({ existingPlants, speciesLookup }: ScannerProps) {
     <div className="space-y-5">
       {state === "idle" && (
         <Card className="flex flex-col items-center gap-4 text-center">
-          <BloomCharacter emotion="cute" size="lg" />
+          <BloomCharacter emotion="advising" size="lg" />
           <div>
             <h2 className="font-heading text-h3 text-cocoa">Montre ta plante à Bloom</h2>
             <p className="mt-1 text-small text-cocoa/70">Une photo suffit pour l&apos;identifier et observer sa santé.</p>

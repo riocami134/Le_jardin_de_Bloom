@@ -2,6 +2,7 @@ import Image from "next/image";
 import { GardenItem } from "./GardenItem";
 import { GardenSeason } from "./GardenSeason";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { BloomCharacter } from "@/components/bloom/BloomCharacter";
 import type { GardenSeason as GardenSeasonType } from "@prisma/client";
 
 export interface GardenProps {
@@ -17,7 +18,7 @@ export function Garden({ season, level, items }: GardenProps) {
       <EmptyState
         title="Ton jardin virtuel n'attend que toi"
         description="Ajoute une plante ou prends-en soin pour voir ton jardin s'éveiller."
-        bloomEmotion="excited"
+        bloomEmotion="sleeping"
       />
     );
   }
@@ -35,6 +36,9 @@ export function Garden({ season, level, items }: GardenProps) {
         />
         <div className="absolute left-3 top-3 flex items-center gap-2">
           <GardenSeason season={season} />
+        </div>
+        <div className="absolute bottom-2 right-2">
+          <BloomCharacter emotion="excited" size="sm" animated />
         </div>
       </div>
 

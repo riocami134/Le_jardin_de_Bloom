@@ -116,7 +116,7 @@ export default async function HomePage() {
         </section>
       )}
 
-      <BloomMessage bloom={bloomMessage} />
+      <BloomMessage bloom={{ ...bloomMessage, emotion: "focused" }} />
 
       {virtualGarden && (
         <Link href="/garden">
