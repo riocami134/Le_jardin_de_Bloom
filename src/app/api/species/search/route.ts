@@ -10,8 +10,9 @@ export async function GET(request: Request) {
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Requête invalide" }, { status: 400 });
     }
-    const species = await searchSpecies(parsed.data);
-    return NextResponse.json({ species });
+    const page = Number(searchParams.get("page")) || 1;
+    const result = await searchSpecies(parsed.data, page);
+    return NextResponse.json({ species: result.items, total: result.total, page: result.page, totalPages: result.totalPages });
   } catch (error) {
     return NextResponse.json({ error: toFriendlyMessage(error) }, { status: 500 });
   }
