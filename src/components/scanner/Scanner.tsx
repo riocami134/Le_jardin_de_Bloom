@@ -46,6 +46,10 @@ export function Scanner({ existingPlants, speciesLookup }: ScannerProps) {
   const [saveTarget, setSaveTarget] = useState<string>("new");
   const [newPlantName, setNewPlantName] = useState("");
   const [saving, setSaving] = useState(false);
+  // Non coché par défaut : la photo reste privée tant que l'utilisateur
+  // n'a pas explicitement accepté qu'elle serve d'illustration publique
+  // pour cette espèce dans Explorer.
+  const [sharePhotoForSpecies, setSharePhotoForSpecies] = useState(false);
 
   function handleFileSelected(selected: File) {
     setFile(selected);
@@ -114,6 +118,7 @@ export function Scanner({ existingPlants, speciesLookup }: ScannerProps) {
       form.append("observations", JSON.stringify(result.health.flags));
       form.append("hypotheses", JSON.stringify([]));
       form.append("recommendations", JSON.stringify([result.recommendation.action]));
+      form.append("sharePhotoForSpecies", String(sharePhotoForSpecies));
 
       const res = await fetch(`/api/plants/${plantId}/analysis`, { method: "POST", body: form });
       if (!res.ok) throw new Error((await res.json()).error);
@@ -229,6 +234,18 @@ export function Scanner({ existingPlants, speciesLookup }: ScannerProps) {
             {saveTarget === "new" && (
               <Input label="Nom de la plante" value={newPlantName} onChange={(e) => setNewPlantName(e.target.value)} />
             )}
+            <label className="flex items-start gap-2 text-caption text-cocoa/70">
+              <input
+                type="checkbox"
+                checked={sharePhotoForSpecies}
+                onChange={(e) => setSharePhotoForSpecies(e.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 accent-leaf"
+              />
+              <span>
+                J&apos;accepte que cette photo serve d&apos;illustration publique pour cette espèce dans Explorer, visible par
+                tous les utilisateurs (uniquement si cette espèce n&apos;a pas encore de photo).
+              </span>
+            </label>
             <div className="flex gap-3">
               <Button variant="tertiary" onClick={reset}>
                 Recommencer
