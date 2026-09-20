@@ -7,6 +7,7 @@ import { SpeciesCard } from "@/components/explore/SpeciesCard";
 import { ExploreFilters } from "@/components/explore/ExploreFilters";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
+import { Pagination } from "@/components/ui/Pagination";
 
 export const metadata: Metadata = {
   title: "Explorer",
@@ -28,7 +29,17 @@ export default async function ExplorePage({
     petSafe: params.petSafe,
   });
 
-  const species = await searchSpecies(parsed.success ? parsed.data : {});
+  const page = Number(params.page) || 1;
+  const { items: species, totalPages } = await searchSpecies(parsed.success ? parsed.data : {}, page);
+
+  function buildHref(targetPage: number): string {
+    const query = new URLSearchParams();
+    if (params.query) query.set("query", params.query);
+    if (params.category) query.set("category", params.category);
+    if (params.petSafe) query.set("petSafe", params.petSafe);
+    query.set("page", String(targetPage));
+    return `/explore?${query.toString()}`;
+  }
 
   return (
     <div className="space-y-6">
@@ -63,6 +74,7 @@ export default async function ExplorePage({
               />
             ))}
           </div>
+          <Pagination page={page} totalPages={totalPages} buildHref={buildHref} />
           <div className="flex justify-center">
             <Link href="/explore/compare">
               <Button variant="tertiary">Comparer deux espèces</Button>

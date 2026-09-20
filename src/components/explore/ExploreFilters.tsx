@@ -15,6 +15,7 @@ export function ExploreFilters() {
     const params = new URLSearchParams(searchParams.toString());
     if (value) params.set(key, value);
     else params.delete(key);
+    params.delete("page"); // tout nouveau filtre repart de la première page
     router.push(`/explore?${params.toString()}`);
   }
 
