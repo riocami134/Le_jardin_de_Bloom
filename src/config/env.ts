@@ -5,10 +5,13 @@ import { z } from "zod";
  * N'importer ce module que depuis du code serveur (lib/, server/, route
  * handlers) — jamais depuis un Client Component.
  */
+/** Convertit une variable laissée vide dans un dashboard d'hébergement en absente. */
+const emptyToUndefined = (value: unknown) => (typeof value === "string" && value.trim() === "" ? undefined : value);
+
 const envSchema = z.object({
   DATABASE_URL: z.string().min(1),
   AUTH_SECRET: z.string().min(1),
-  AUTH_URL: z.string().url().optional(),
+  AUTH_URL: z.preprocess(emptyToUndefined, z.string().url().optional()),
   STORAGE_PROVIDER: z.enum(["mock", "s3", "supabase"]).default("mock"),
   STORAGE_ENDPOINT: z.string().optional(),
   STORAGE_ACCESS_KEY: z.string().optional(),
