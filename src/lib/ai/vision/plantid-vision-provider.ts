@@ -105,7 +105,7 @@ export class PlantIdVisionProvider implements PlantVisionProvider {
     const isHealthyProbability = data.result?.is_healthy?.probability ?? 0.5;
     const diseases = data.result?.disease?.suggestions ?? [];
     const topDiseaseNames = diseases
-      .filter((d) => (d.probability ?? 0) > 0.15)
+      .filter((d) => (d.probability ?? 0) > 0.1)
       .map((d) => (d.name ?? "").toLowerCase());
 
     const hasKeyword = (...keywords: string[]) => topDiseaseNames.some((name) => keywords.some((k) => name.includes(k)));
