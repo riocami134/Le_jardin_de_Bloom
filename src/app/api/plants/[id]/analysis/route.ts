@@ -36,6 +36,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     }
     const hypotheses = JSON.parse(String(formData.get("hypotheses") ?? "[]"));
     const recommendations = JSON.parse(String(formData.get("recommendations") ?? "[]"));
+    const sharePhotoForSpecies = formData.get("sharePhotoForSpecies") === "true";
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const storage = getStorageProvider();
@@ -59,12 +60,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       const previousScore = plant.healthScore;
       await tx.plant.update({ where: { id }, data: { healthScore: score, status } });
 
-      // Première vraie photo pour une espèce ajoutée automatiquement via le
-      // Scanner (sans photo de référence) : elle devient l'illustration de
-      // cette espèce dans Explorer — légalement plus sûr que d'aller
-      // chercher une image externe, et ça complète le catalogue au fil des
-      // scans plutôt que de rester avec une simple icône.
-      if (plant.speciesId) {
+      // Une photo ne devient l'illustration publique de son espèce dans
+      // Explorer que si l'utilisateur l'a explicitement accepté (case non
+      // cochée par défaut) — jamais automatiquement, sa photo reste privée.
+      if (sharePhotoForSpecies && plant.speciesId) {
         const species = await tx.plantSpecies.findUnique({ where: { id: plant.speciesId }, select: { imageUrl: true } });
         if (species && !species.imageUrl) {
           const photoUrl = await storage.getSignedUrl(key);
