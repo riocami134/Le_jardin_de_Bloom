@@ -5,6 +5,11 @@ import { prisma } from "@/lib/db/prisma";
 import { loginSchema } from "@/lib/validation/auth";
 
 export const authConfig: NextAuthConfig = {
+  // Nécessaire derrière un proxy/plateforme comme Vercel : le site répond sur
+  // plusieurs hôtes (domaine custom + URLs de déploiement générées), qu'Auth.js
+  // refuse par défaut ("UntrustedHost") sans cette option. AUTH_URL reste la
+  // source de vérité pour construire les liens absolus (metadata, callbacks).
+  trustHost: true,
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
   providers: [
