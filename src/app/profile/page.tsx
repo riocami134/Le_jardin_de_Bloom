@@ -56,7 +56,7 @@ export default async function ProfilePage() {
         </Link>
       </div>
 
-      <form action={logoutAction} className="border-t border-cocoa/10 pt-4">
+      <form action={logoutAction} className="pt-2">
         <Button type="submit" variant="ghost" className="w-full">
           Se déconnecter
         </Button>
