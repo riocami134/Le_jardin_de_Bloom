@@ -1,5 +1,5 @@
 import type { HealthObservation, PlantIdentification } from "@/types";
-import type { PlantVisionProvider } from "./types";
+import type { PlantVisionInput, PlantVisionProvider } from "./types";
 
 const MOCK_SPECIES: Array<{ scientificName: string; commonName: string }> = [
   { scientificName: "Monstera deliciosa", commonName: "Monstera" },
@@ -18,6 +18,11 @@ function hashString(value: string): number {
   return Math.abs(hash);
 }
 
+/** Clé stable dérivée de l'image sans hasher tout le base64 (potentiellement volumineux). */
+function keyFromInput({ imageBase64, mimeType }: PlantVisionInput): string {
+  return `${mimeType}:${imageBase64.length}:${imageBase64.slice(0, 128)}`;
+}
+
 /**
  * Fournisseur de vision simulé : ne fait aucun appel réseau, ne prétend
  * jamais à une vraie identification par IA. Utilisé tant que
@@ -25,8 +30,8 @@ function hashString(value: string): number {
  * ce qui permet de le remplacer par un vrai provider sans changer l'UI.
  */
 export class MockVisionProvider implements PlantVisionProvider {
-  async identifyPlant({ imageUrl }: { imageUrl: string }): Promise<PlantIdentification> {
-    const hash = hashString(imageUrl);
+  async identifyPlant(input: PlantVisionInput): Promise<PlantIdentification> {
+    const hash = hashString(keyFromInput(input));
     const match = MOCK_SPECIES[hash % MOCK_SPECIES.length]!;
     const confidence = 0.55 + (hash % 40) / 100; // entre 0.55 et 0.94, jamais 1.0
 
@@ -40,8 +45,8 @@ export class MockVisionProvider implements PlantVisionProvider {
     };
   }
 
-  async analyzePlantHealth({ imageUrl }: { imageUrl: string; speciesHint?: string }): Promise<HealthObservation> {
-    const hash = hashString(imageUrl + "health");
+  async analyzePlantHealth(input: PlantVisionInput & { speciesHint?: string }): Promise<HealthObservation> {
+    const hash = hashString(keyFromInput(input) + "health");
     const score = 55 + (hash % 40); // entre 55 et 94
     const confidence = 0.6 + (hash % 30) / 100;
 
