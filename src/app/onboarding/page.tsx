@@ -88,7 +88,7 @@ export default function OnboardingPage() {
 
         <Card className="space-y-5">
           {step === 0 && (
-            <StepShell emotion="cute" title="Où vis-tu ?" subtitle="Ça nous aide à te donner la bonne météo.">
+            <StepShell emotion="focused" title="Où vis-tu ?" subtitle="Ça nous aide à te donner la bonne météo.">
               <CityAutocomplete
                 value={draft.city ?? ""}
                 onChange={(city) => setDraft((p) => ({ ...p, city }))}
