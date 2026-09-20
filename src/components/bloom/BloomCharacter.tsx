@@ -31,7 +31,11 @@ export function BloomCharacter({ emotion, size = "md", animated = false, classNa
       width={px}
       height={px}
       priority={size === "xl"}
-      className={cn(animated && "animate-bloom-bounce", className)}
+      // shrink-0 + object-contain : évite l'étirement quand Bloom est placé
+      // dans un conteneur flex qui réduit sa largeur sans toucher sa hauteur
+      // (ex. carte BloomAdvice), notamment avec le reset Tailwind sur <img>.
+      style={{ width: px, height: px }}
+      className={cn("shrink-0 object-contain", animated && "animate-bloom-bounce", className)}
     />
   );
 }

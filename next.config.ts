@@ -9,7 +9,11 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   images: {
-    remotePatterns: [],
+    remotePatterns: [
+      // Photos hébergées par Vercel Blob (STORAGE_PROVIDER=vercel-blob) —
+      // sans cette autorisation, next/image refuse silencieusement l'image.
+      { protocol: "https", hostname: "*.public.blob.vercel-storage.com" },
+    ],
   },
   async headers() {
     return [
