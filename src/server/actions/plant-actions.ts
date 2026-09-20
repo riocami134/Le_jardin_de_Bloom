@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db/prisma";
 import { requireUserId } from "@/lib/auth/session";
 import { createPlantSchema, createCareActionSchema, type CreatePlantInput, type CreateCareActionInput } from "@/lib/validation/plant";
+import { plantLocationSchema, type PlantLocationInput } from "@/lib/validation/environment";
 
 export interface ActionResult {
   success: boolean;
@@ -168,5 +169,49 @@ export async function deletePlantAction(plantId: string): Promise<ActionResult> 
   revalidatePath("/plants");
   revalidatePath("/garden");
   revalidatePath("/");
+  return { success: true };
+}
+
+export async function updatePlantLocationAction(
+  plantId: string,
+  input: PlantLocationInput,
+  usedCompassSensor: boolean,
+): Promise<ActionResult> {
+  const parsed = plantLocationSchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+  }
+
+  const userId = await requireUserId();
+  const plant = await prisma.plant.findFirst({ where: { id: plantId, userId, deletedAt: null } });
+  if (!plant) {
+    return { success: false, error: "Plante introuvable" };
+  }
+
+  await prisma.$transaction(async (tx) => {
+    if (plant.locationId) {
+      await tx.plantLocation.update({ where: { id: plant.locationId }, data: parsed.data });
+    } else {
+      const location = await tx.plantLocation.create({ data: parsed.data });
+      await tx.plant.update({ where: { id: plantId }, data: { locationId: location.id } });
+    }
+
+    if (parsed.data.windowOrientation) {
+      await tx.userAchievement.upsert({
+        where: { userId_achievementId: { userId, achievementId: "first_orientation" } },
+        update: {},
+        create: { userId, achievementId: "first_orientation" },
+      });
+    }
+    if (usedCompassSensor) {
+      await tx.userAchievement.upsert({
+        where: { userId_achievementId: { userId, achievementId: "first_compass" } },
+        update: {},
+        create: { userId, achievementId: "first_compass" },
+      });
+    }
+  });
+
+  revalidatePath(`/plants/${plantId}`);
   return { success: true };
 }
