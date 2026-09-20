@@ -26,7 +26,7 @@ export async function createPlantAction(input: CreatePlantInput): Promise<Action
     // Explorer : on l'y ajoute automatiquement à partir des infos connues,
     // pour que toute plante identifiée enrichisse la base au fil du temps.
     if (!speciesId && parsed.data.identification) {
-      const { scientificName, commonName } = parsed.data.identification;
+      const { scientificName, commonName, family, light, watering, propagation } = parsed.data.identification;
       const existingSpecies = await tx.plantSpecies.findUnique({ where: { scientificName } });
       if (existingSpecies) {
         speciesId = existingSpecies.id;
@@ -35,10 +35,15 @@ export async function createPlantAction(input: CreatePlantInput): Promise<Action
           data: {
             commonName,
             scientificName,
+            family,
+            propagation,
             category: "jardin",
-            light: "Non renseigné — espèce ajoutée automatiquement via le Scanner",
-            watering: "Non renseigné — espèce ajoutée automatiquement via le Scanner",
+            light: light ?? "Non renseigné — espèce ajoutée automatiquement via le Scanner",
+            watering: watering ?? "Non renseigné — espèce ajoutée automatiquement via le Scanner",
             difficulty: "modere",
+            // Toxicité/sécurité animaux jamais déduite automatiquement des
+            // données Plant.id (risque trop important en cas d'erreur) :
+            // on garde toujours la valeur prudente par défaut.
             petSafe: false,
             toxicity: "Non vérifiée — renseigne-toi avant d'exposer cette plante à tes animaux",
             indoorOutdoor: "les-deux",

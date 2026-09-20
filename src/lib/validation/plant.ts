@@ -15,6 +15,12 @@ export const createPlantSchema = z.object({
     .object({
       scientificName: z.string().trim().min(1),
       commonName: z.string().trim().min(1),
+      // Détails best-effort de la base de connaissances Plant.id — peuvent
+      // être absents, jamais requis.
+      family: z.string().trim().min(1).optional(),
+      light: z.string().trim().min(1).optional(),
+      watering: z.string().trim().min(1).optional(),
+      propagation: z.string().trim().min(1).optional(),
     })
     .optional(),
 });

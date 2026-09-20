@@ -3,7 +3,9 @@ import type { PlantVisionInput, PlantVisionProvider } from "./types";
 
 const IDENTIFY_URL = "https://api.plant.id/v3/identification?details=common_names&language=fr";
 const HEALTH_URL = "https://api.plant.id/v3/health_assessment?details=description,treatment&language=fr";
+const KB_DETAILS = "common_names,description,watering,sunlight,propagation_methods,taxonomy";
 const REQUEST_TIMEOUT_MS = 20_000;
+const KB_TIMEOUT_MS = 10_000;
 
 interface PlantIdSuggestion {
   name?: string;
@@ -12,7 +14,22 @@ interface PlantIdSuggestion {
 }
 
 interface PlantIdIdentificationResponse {
+  access_token?: string;
   result?: { classification?: { suggestions?: PlantIdSuggestion[] } };
+}
+
+/**
+ * Champs de la base de connaissances Plant.id (endpoint kb/plants) —
+ * formes exactes non garanties par la documentation publique, d'où le
+ * parsing volontairement permissif dans toText() ci-dessous.
+ */
+interface PlantIdKbResponse {
+  common_names?: string[];
+  description?: { value?: string } | string;
+  watering?: unknown;
+  sunlight?: unknown;
+  propagation_methods?: unknown;
+  taxonomy?: { family?: string };
 }
 
 interface PlantIdDiseaseSuggestion {
@@ -47,8 +64,35 @@ async function postJson<T>(url: string, apiKey: string, body: unknown): Promise<
   }
 }
 
+async function getJson<T>(url: string, apiKey: string, timeoutMs: number): Promise<T> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { headers: { "Api-Key": apiKey }, signal: controller.signal });
+    if (!response.ok) {
+      throw new Error(`Plant.id (kb) a répondu ${response.status}`);
+    }
+    return (await response.json()) as T;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 function toDataUri({ imageBase64, mimeType }: PlantVisionInput): string {
   return imageBase64.startsWith("data:") ? imageBase64 : `data:${mimeType};base64,${imageBase64}`;
+}
+
+/** Convertit une valeur de forme inconnue (string, tableau, objet {value}) en texte lisible. */
+function toText(value: unknown): string | undefined {
+  if (typeof value === "string") return value.trim() || undefined;
+  if (Array.isArray(value)) {
+    const joined = value.filter((v) => typeof v === "string").join(", ");
+    return joined || undefined;
+  }
+  if (value && typeof value === "object" && "value" in value) {
+    return toText((value as { value?: unknown }).value);
+  }
+  return undefined;
 }
 
 /**
@@ -72,6 +116,33 @@ function commonNameOf(suggestion: PlantIdSuggestion): string {
 export class PlantIdVisionProvider implements PlantVisionProvider {
   constructor(private readonly apiKey: string) {}
 
+  /**
+   * Best-effort : interroge la base de connaissances Plant.id pour
+   * compléter l'identification (famille, lumière, arrosage, propagation).
+   * Ne doit jamais faire échouer l'identification elle-même — toute erreur
+   * ou forme de réponse inattendue est avalée silencieusement.
+   */
+  private async fetchSpeciesDetails(accessToken: string | undefined): Promise<PlantIdentification["speciesDetails"]> {
+    if (!accessToken) return undefined;
+    try {
+      const kb = await getJson<PlantIdKbResponse>(
+        `https://api.plant.id/v3/kb/plants/${encodeURIComponent(accessToken)}?details=${KB_DETAILS}&language=fr`,
+        this.apiKey,
+        KB_TIMEOUT_MS,
+      );
+      const details = {
+        family: kb.taxonomy?.family,
+        light: toText(kb.sunlight),
+        watering: toText(kb.watering),
+        propagation: toText(kb.propagation_methods),
+      };
+      const hasAnyValue = Object.values(details).some(Boolean);
+      return hasAnyValue ? details : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
   async identifyPlant(input: PlantVisionInput): Promise<PlantIdentification> {
     // Les modificateurs (health, similar_images, classification_level...) sont
     // des paramètres de requête côté Plant.id v3, pas des champs du corps JSON.
@@ -85,6 +156,8 @@ export class PlantIdVisionProvider implements PlantVisionProvider {
     }
 
     const [best, ...rest] = suggestions;
+    const speciesDetails = await this.fetchSpeciesDetails(data.access_token);
+
     return {
       scientificName: best!.name ?? "Espèce inconnue",
       commonName: commonNameOf(best!),
@@ -94,6 +167,7 @@ export class PlantIdVisionProvider implements PlantVisionProvider {
         commonName: commonNameOf(s),
         confidence: Math.min(Math.max(s.probability ?? 0, 0), 1),
       })),
+      speciesDetails,
     };
   }
 
