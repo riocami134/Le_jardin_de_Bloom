@@ -12,7 +12,7 @@ export function ScannerResult({ identification }: { identification: PlantIdentif
       <p className="text-small text-cocoa/80">
         {confident
           ? `Bloom pense qu'il s'agit probablement d'un ${identification.commonName} (${Math.round(identification.confidence * 100)}% de confiance).`
-          : "Bloom n'est pas suffisamment certain — une photo plus proche de la feuille pourrait l'aider."}
+          : "Bloom n'est pas suffisamment certain, une photo plus proche de la feuille pourrait l'aider."}
       </p>
     </Card>
   );
