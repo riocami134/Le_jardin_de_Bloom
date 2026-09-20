@@ -23,7 +23,7 @@ export function BottomNavigation() {
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex min-h-[56px] flex-col items-center justify-center gap-0.5 text-caption font-semibold",
+                  "flex min-h-[56px] flex-col items-center justify-center gap-0.5 text-center text-caption font-semibold leading-tight",
                   active ? "text-leaf" : "text-cocoa/50",
                 )}
               >
