@@ -21,7 +21,7 @@ export default async function SpeciesDetailPage({ params }: { params: Promise<{ 
   return (
     <div className="space-y-6">
       <div className="overflow-hidden rounded-card bg-ivory shadow-soft">
-        <div className="relative aspect-[16/9] bg-sky/30">
+        <div className={`relative aspect-[16/9] ${species.imageUrl ? "bg-sky/30" : PLANT_CATEGORIES[species.category].avatarBg}`}>
           {species.imageUrl ? (
             <Image src={species.imageUrl} alt={species.commonName} fill className="object-cover" priority />
           ) : (

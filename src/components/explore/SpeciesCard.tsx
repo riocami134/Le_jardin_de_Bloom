@@ -19,7 +19,7 @@ export function SpeciesCard({ id, commonName, scientificName, category, light, d
   return (
     <Link href={`/explore/${id}`}>
       <Card padded={false} className="overflow-hidden" lift>
-        <div className="relative aspect-[4/3] bg-sky/30">
+        <div className={`relative aspect-[4/3] ${imageUrl ? "bg-sky/30" : PLANT_CATEGORIES[category].avatarBg}`}>
           {imageUrl ? (
             <Image src={imageUrl} alt={commonName} fill className="object-cover" sizes="(min-width: 640px) 300px, 50vw" />
           ) : (
