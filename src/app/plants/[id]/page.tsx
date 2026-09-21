@@ -152,7 +152,7 @@ export default async function PlantDetailPage({ params }: { params: Promise<{ id
                 </div>
               ) : (
                 <Card>
-                  <p className="text-small text-cocoa/60">Aucune photo pour le moment — scanne cette plante pour en ajouter une.</p>
+                  <p className="text-small text-cocoa/60">Aucune photo pour le moment, scanne cette plante pour en ajouter une.</p>
                 </Card>
               ),
           },

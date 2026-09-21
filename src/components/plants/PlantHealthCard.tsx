@@ -29,7 +29,7 @@ export function PlantHealthCard({ status, score, scoreHistory = [] }: PlantHealt
       {typeof score === "number" ? (
         <Progress value={score} tone={TONE_BY_STATUS[status]} />
       ) : (
-        <p className="text-small text-cocoa/60">Pas encore d&apos;analyse — scanne cette plante pour un premier indice.</p>
+        <p className="text-small text-cocoa/60">Pas encore d&apos;analyse, scanne cette plante pour un premier indice.</p>
       )}
       {scoreHistory.length > 1 && (
         <div className="flex items-end gap-1.5 pt-1" aria-hidden="true">
