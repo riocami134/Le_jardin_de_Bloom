@@ -29,6 +29,7 @@ export async function updateProfileAction(formData: FormData): Promise<ActionRes
 
   revalidatePath("/profile");
   revalidatePath("/settings");
+  revalidatePath("/"); // la météo de l'accueil dépend de la ville
   return { success: true };
 }
 

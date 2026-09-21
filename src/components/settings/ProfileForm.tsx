@@ -4,11 +4,13 @@ import { useState } from "react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
+import { CityAutocomplete } from "@/components/onboarding/CityAutocomplete";
 import { updateProfileAction } from "@/server/actions/settings-actions";
 
 export function ProfileForm({ name, city }: { name: string; city: string }) {
   const { showToast } = useToast();
   const [pending, setPending] = useState(false);
+  const [cityValue, setCityValue] = useState(city);
 
   async function handleSubmit(formData: FormData) {
     setPending(true);
@@ -20,7 +22,10 @@ export function ProfileForm({ name, city }: { name: string; city: string }) {
   return (
     <form action={handleSubmit} className="space-y-4">
       <Input label="Prénom" name="name" defaultValue={name} required />
-      <Input label="Ville" name="city" defaultValue={city} placeholder="Pour la météo de ton jardin" />
+      <CityAutocomplete value={cityValue} onChange={setCityValue} />
+      {/* CityAutocomplete est contrôlé (value/onChange) et n'a pas d'attribut
+          name : ce champ caché transmet sa valeur au FormData natif. */}
+      <input type="hidden" name="city" value={cityValue} />
       <Button type="submit" disabled={pending}>
         {pending ? "Enregistrement…" : "Enregistrer"}
       </Button>
