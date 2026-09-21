@@ -1,9 +1,11 @@
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireUserId } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
 import { getGardenSummary, getVirtualGarden } from "@/server/queries/garden";
 import { getPlantsToWatch, getRecentAnalyses } from "@/server/queries/plants";
+import { resolvePhotoUrl } from "@/server/queries/photos";
 import { getTodayReminders } from "@/server/queries/reminders";
 import { getWeatherProvider } from "@/lib/weather";
 import { bloomService } from "@/server/services/bloom-service";
@@ -29,6 +31,13 @@ export default async function HomePage() {
     getRecentAnalyses(userId),
     getVirtualGarden(userId),
   ]);
+
+  const recentAnalysesWithPhotos = await Promise.all(
+    recentAnalyses.map(async (analysis) => ({
+      ...analysis,
+      photoUrl: analysis.photo ? await resolvePhotoUrl(analysis.photo.storageKey) : null,
+    })),
+  );
 
   const weather = user.city ? await getWeatherProvider().getWeatherContext({ city: user.city }) : null;
 
@@ -98,14 +107,20 @@ export default async function HomePage() {
         </section>
       )}
 
-      {recentAnalyses.length > 0 && (
+      {recentAnalysesWithPhotos.length > 0 && (
         <section className="space-y-2">
           <h2 className="font-heading text-h4 text-ivory sm:text-cocoa">Analyses récentes</h2>
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-            {recentAnalyses.map((analysis) => (
+            {recentAnalysesWithPhotos.map((analysis) => (
               <Link key={analysis.id} href={`/plants/${analysis.plant.id}`}>
                 <Card padded={false} className="overflow-hidden">
-                  <div className="flex aspect-square items-center justify-center bg-peach-light text-h2">🌿</div>
+                  <div className="relative flex aspect-square items-center justify-center bg-peach-light text-h2">
+                    {analysis.photoUrl ? (
+                      <Image src={analysis.photoUrl} alt={analysis.plant.name} fill className="object-cover" sizes="(min-width: 640px) 200px, 33vw" />
+                    ) : (
+                      "🌿"
+                    )}
+                  </div>
                   <div className="p-2 text-center">
                     <p className="text-caption font-semibold text-cocoa">{analysis.score}/100</p>
                   </div>
