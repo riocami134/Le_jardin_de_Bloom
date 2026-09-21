@@ -27,12 +27,16 @@ export interface WeatherCardProps {
 
 export function WeatherCard({ weather }: WeatherCardProps) {
   const { current, forecast } = weather;
+  const today = new Date(current.timestamp);
+  const todayLabel = today.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
 
   return (
     <Card>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-small font-semibold text-cocoa/60">Météo · {current.city}</p>
+          <p className="text-small font-semibold text-cocoa/60">
+            Météo · {current.city} · <span className="capitalize">{todayLabel}</span>
+          </p>
           <div className="mt-1 flex items-center gap-2">
             <span className="text-h1" aria-hidden="true">
               {CONDITION_ICON[current.condition] ?? "🌤️"}
