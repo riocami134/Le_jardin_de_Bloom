@@ -65,7 +65,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       // cochée par défaut) — jamais automatiquement, sa photo reste privée.
       if (sharePhotoForSpecies && plant.speciesId) {
         const species = await tx.plantSpecies.findUnique({ where: { id: plant.speciesId }, select: { imageUrl: true } });
-        if (species && !species.imageUrl) {
+        // Les espèces de démo ont une illustration placeholder locale
+        // (/plants/placeholder-*.svg) posée par le seed : elle ne doit pas
+        // bloquer le remplacement par une vraie photo partagée par un utilisateur.
+        const hasRealPhoto = species?.imageUrl && !species.imageUrl.startsWith("/plants/placeholder");
+        if (species && !hasRealPhoto) {
           const photoUrl = await storage.getSignedUrl(key);
           await tx.plantSpecies.update({ where: { id: plant.speciesId }, data: { imageUrl: photoUrl } });
         }
