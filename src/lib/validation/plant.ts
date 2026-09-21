@@ -4,11 +4,14 @@ export const plantStatusSchema = z.enum(["healthy", "watch", "attention", "unkno
 
 export const createPlantSchema = z.object({
   name: z.string().trim().min(1, "Donne un nom à ta plante").max(80),
-  speciesId: z.string().cuid().optional(),
+  // Pas de .cuid() : de nombreuses espèces du catalogue (import en masse,
+  // données de démo) ont des identifiants personnalisés qui ne respectent
+  // pas ce format précis — seul l'id généré par Prisma par défaut l'est.
+  speciesId: z.string().trim().min(1).optional(),
   nickname: z.string().trim().max(80).optional(),
   notes: z.string().trim().max(2000).optional(),
-  locationId: z.string().cuid().optional(),
-  environmentId: z.string().cuid().optional(),
+  locationId: z.string().trim().min(1).optional(),
+  environmentId: z.string().trim().min(1).optional(),
   // Fourni par le Scanner quand l'espèce identifiée n'a pas de speciesId
   // connu : permet de créer automatiquement une fiche dans Explorer.
   identification: z
