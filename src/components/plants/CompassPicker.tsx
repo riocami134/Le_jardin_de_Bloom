@@ -62,7 +62,7 @@ export function CompassPicker({ value, onChange }: CompassPickerProps) {
       if (typeof DOEvent?.requestPermission === "function") {
         const permission = await DOEvent.requestPermission();
         if (permission !== "granted") {
-          setSensorError("Autorisation refusée — choisis une direction manuellement ci-dessous.");
+          setSensorError("Autorisation refusée, choisis une direction manuellement ci-dessous.");
           return;
         }
       }
@@ -77,7 +77,7 @@ export function CompassPicker({ value, onChange }: CompassPickerProps) {
       window.addEventListener("deviceorientation", handler as EventListener);
       setSensorActive(true);
     } catch {
-      setSensorError("Impossible d'accéder à la boussole de cet appareil — choisis une direction manuellement.");
+      setSensorError("Impossible d'accéder à la boussole de cet appareil, choisis une direction manuellement.");
     }
   }
 

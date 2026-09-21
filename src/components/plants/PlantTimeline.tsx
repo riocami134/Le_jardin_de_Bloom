@@ -19,7 +19,7 @@ export function PlantTimeline({ entries }: { entries: TimelineEntry[] }) {
             </span>
             <div>
               <p className="text-small font-semibold text-cocoa">
-                {entry.kind === "analysis" ? `Analyse — score ${entry.score}/100` : CARE_ACTION_LABEL[entry.type].label}
+                {entry.kind === "analysis" ? `Analyse, score ${entry.score}/100` : CARE_ACTION_LABEL[entry.type].label}
               </p>
               <p className="text-caption text-cocoa/60">
                 {new Date(entry.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
