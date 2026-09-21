@@ -22,7 +22,7 @@ export default async function SettingsPage() {
         </div>
       </Card>
 
-      <Link href="/settings/privacy">
+      <Link href="/settings/privacy" className="mt-4 block">
         <Card padded className="flex items-center justify-between !py-3">
           <span className="text-body text-cocoa">🔒 Confidentialité &amp; données (RGPD)</span>
           <span aria-hidden="true">→</span>
