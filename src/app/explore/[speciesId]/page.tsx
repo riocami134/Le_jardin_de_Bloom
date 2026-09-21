@@ -21,13 +21,17 @@ export default async function SpeciesDetailPage({ params }: { params: Promise<{ 
   return (
     <div className="space-y-6">
       <div className="overflow-hidden rounded-card bg-ivory shadow-soft">
-        <div className={`relative aspect-[16/9] ${species.imageUrl ? "bg-sky/30" : PLANT_CATEGORIES[species.category].avatarBg}`}>
+        <div className="relative aspect-[16/9] bg-ivory">
           {species.imageUrl ? (
             <Image src={species.imageUrl} alt={species.commonName} fill className="object-cover" priority />
           ) : (
-            <div className="flex h-full items-center justify-center text-h1" aria-hidden="true">
-              {PLANT_CATEGORIES[species.category].icon}
-            </div>
+            <Image
+              src={PLANT_CATEGORIES[species.category].avatarUrl}
+              alt={PLANT_CATEGORIES[species.category].label}
+              fill
+              className="object-contain p-6"
+              priority
+            />
           )}
         </div>
         <div className="space-y-2 p-5">

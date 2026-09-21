@@ -19,13 +19,17 @@ export function SpeciesCard({ id, commonName, scientificName, category, light, d
   return (
     <Link href={`/explore/${id}`}>
       <Card padded={false} className="overflow-hidden" lift>
-        <div className={`relative aspect-[4/3] ${imageUrl ? "bg-sky/30" : PLANT_CATEGORIES[category].avatarBg}`}>
+        <div className="relative aspect-[4/3] bg-ivory">
           {imageUrl ? (
             <Image src={imageUrl} alt={commonName} fill className="object-cover" sizes="(min-width: 640px) 300px, 50vw" />
           ) : (
-            <div className="flex h-full items-center justify-center text-h1" aria-hidden="true">
-              {PLANT_CATEGORIES[category].icon}
-            </div>
+            <Image
+              src={PLANT_CATEGORIES[category].avatarUrl}
+              alt={PLANT_CATEGORIES[category].label}
+              fill
+              className="object-contain p-4"
+              sizes="(min-width: 640px) 300px, 50vw"
+            />
           )}
         </div>
         <div className="space-y-1.5 p-4">
