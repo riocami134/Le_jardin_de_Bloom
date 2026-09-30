@@ -13,11 +13,20 @@
  * d'origine (ex. « Lourd-Bearing Everbearing Forestier Fraise »).
  */
 export function cleanSpeciesName(name: string): string {
-  const cleaned = name
-    // codes cultivar/fournisseur isolés repérés dans le catalogue
+  let cleaned = name
+    // code cultivar "AU" (Auburn University) en majuscules, isolé
     .replace(/\bAU\b\s*/g, "")
     // numéros isolés (codes de variété, ex. "4010 Forage Pea")
-    .replace(/\b\d+\b\s*/g, "")
+    .replace(/\b\d+\b\s*/g, "");
+
+  // même code, mais rendu en casse "Au " par le catalogue — seulement en
+  // tête de nom et confirmé par la mention "(Auburn University" plus loin,
+  // pour ne jamais toucher un vrai "au" français (ex. "Café au Lait Dahlia").
+  if (/^Au\s+/.test(cleaned) && /\(Auburn University/i.test(cleaned)) {
+    cleaned = cleaned.replace(/^Au\s+/, "");
+  }
+
+  cleaned = cleaned
     .replace(/\s{2,}/g, " ")
     .replace(/\s+([),.])/g, "$1")
     .replace(/\(\s*\)/g, "")
@@ -27,4 +36,18 @@ export function cleanSpeciesName(name: string): string {
     .trim();
 
   return cleaned || name;
+}
+
+/**
+ * Titre court pour les cartes (grille Explorer) : ne garde que le nom
+ * principal, sans la description entre parenthèses qui peut faire plus de
+ * 100 caractères sur certaines fiches importées (ex. "Ballet Slippers
+ * Hibiscus (White with Pink-Edged Petals and Red Eye Hardy Hibiscus)" ->
+ * "Ballet Slippers Hibiscus"). La description complète reste visible sur
+ * la fiche détail via cleanSpeciesName.
+ */
+export function speciesCardTitle(name: string): string {
+  const cleaned = cleanSpeciesName(name);
+  const beforeParen = cleaned.split("(")[0]?.trim();
+  return beforeParen || cleaned;
 }
