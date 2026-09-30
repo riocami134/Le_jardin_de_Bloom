@@ -6,11 +6,13 @@ import { getSpeciesById } from "@/server/queries/species";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { PLANT_CATEGORIES } from "@/constants/plant-categories";
+import { cleanSpeciesName } from "@/lib/botanics/clean-species-name";
 
 export async function generateMetadata({ params }: { params: Promise<{ speciesId: string }> }): Promise<Metadata> {
   const { speciesId } = await params;
   const species = await getSpeciesById(speciesId);
-  return { title: species?.commonName ?? "Espèce", description: species ? `Tout savoir sur ${species.commonName} (${species.scientificName})` : undefined };
+  const commonName = species ? cleanSpeciesName(species.commonName) : undefined;
+  return { title: commonName ?? "Espèce", description: species ? `Tout savoir sur ${commonName} (${species.scientificName})` : undefined };
 }
 
 export default async function SpeciesDetailPage({ params }: { params: Promise<{ speciesId: string }> }) {
@@ -35,7 +37,7 @@ export default async function SpeciesDetailPage({ params }: { params: Promise<{ 
           )}
         </div>
         <div className="space-y-2 p-5">
-          <h1 className="font-heading text-h2 text-cocoa">{species.commonName}</h1>
+          <h1 className="font-heading text-h2 text-cocoa">{cleanSpeciesName(species.commonName)}</h1>
           <p className="text-small italic text-cocoa/60">{species.scientificName} · {species.family}</p>
           <div className="flex flex-wrap gap-2 pt-1">
             <Badge tone="info" icon={PLANT_CATEGORIES[species.category].icon}>{PLANT_CATEGORIES[species.category].label}</Badge>
