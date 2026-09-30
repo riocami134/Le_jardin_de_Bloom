@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { PLANT_CATEGORIES } from "@/constants/plant-categories";
-import { cleanSpeciesName } from "@/lib/botanics/clean-species-name";
+import { speciesCardTitle } from "@/lib/botanics/clean-species-name";
 import type { PlantCategory } from "@prisma/client";
 
 export interface SpeciesCardProps {
@@ -33,16 +33,22 @@ export function SpeciesCard({ id, commonName, scientificName, category, light, d
             />
           )}
         </div>
-        <div className="flex h-[184px] flex-col gap-1.5 overflow-hidden p-4">
-          <h3 className="line-clamp-2 font-heading text-h4 text-cocoa">{cleanSpeciesName(commonName)}</h3>
-          <p className="line-clamp-1 text-caption italic text-cocoa/60">{scientificName}</p>
+        <div className="flex h-[260px] flex-col gap-1.5 overflow-hidden p-4">
+          <div>
+            <h3 className="line-clamp-3 font-heading text-h4 text-cocoa">{speciesCardTitle(commonName)}</h3>
+          </div>
+          <div>
+            <p className="line-clamp-2 text-caption italic text-cocoa/60">{scientificName}</p>
+          </div>
           <div className="flex flex-wrap gap-1.5 pt-1">
             <Badge tone="info" icon={PLANT_CATEGORIES[category].icon}>
               {PLANT_CATEGORIES[category].label}
             </Badge>
             <Badge tone="neutral">{difficulty}</Badge>
           </div>
-          <p className="mt-auto line-clamp-1 pt-1 text-caption text-cocoa/60">☀️ {light}</p>
+          <div className="mt-auto pt-1">
+            <p className="line-clamp-1 text-caption text-cocoa/60">☀️ {light}</p>
+          </div>
         </div>
       </Card>
     </Link>
