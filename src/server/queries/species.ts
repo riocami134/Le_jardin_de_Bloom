@@ -13,7 +13,7 @@ export async function findSpeciesByScientificName(scientificName: string) {
   return prisma.plantSpecies.findUnique({ where: { scientificName } });
 }
 
-export const SPECIES_PAGE_SIZE = 20;
+export const SPECIES_PAGE_SIZE = 21;
 
 export async function searchSpecies(filters: SpeciesSearchInput, page = 1) {
   const where = {

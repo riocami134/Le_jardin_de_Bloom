@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { PLANT_CATEGORIES } from "@/constants/plant-categories";
+import { cleanSpeciesName } from "@/lib/botanics/clean-species-name";
 import type { PlantCategory } from "@prisma/client";
 
 export interface SpeciesCardProps {
@@ -17,9 +18,9 @@ export interface SpeciesCardProps {
 
 export function SpeciesCard({ id, commonName, scientificName, category, light, difficulty, imageUrl }: SpeciesCardProps) {
   return (
-    <Link href={`/explore/${id}`}>
-      <Card padded={false} className="overflow-hidden" lift>
-        <div className="relative aspect-[4/3] bg-ivory">
+    <Link href={`/explore/${id}`} className="block h-full">
+      <Card padded={false} className="flex h-full flex-col overflow-hidden" lift>
+        <div className="relative aspect-[4/3] shrink-0 bg-ivory">
           {imageUrl ? (
             <Image src={imageUrl} alt={commonName} fill className="object-cover" sizes="(min-width: 640px) 300px, 50vw" />
           ) : (
@@ -32,16 +33,16 @@ export function SpeciesCard({ id, commonName, scientificName, category, light, d
             />
           )}
         </div>
-        <div className="space-y-1.5 p-4">
-          <h3 className="font-heading text-h4 text-cocoa">{commonName}</h3>
-          <p className="text-caption italic text-cocoa/60">{scientificName}</p>
+        <div className="flex h-[184px] flex-col gap-1.5 overflow-hidden p-4">
+          <h3 className="line-clamp-2 font-heading text-h4 text-cocoa">{cleanSpeciesName(commonName)}</h3>
+          <p className="line-clamp-1 text-caption italic text-cocoa/60">{scientificName}</p>
           <div className="flex flex-wrap gap-1.5 pt-1">
             <Badge tone="info" icon={PLANT_CATEGORIES[category].icon}>
               {PLANT_CATEGORIES[category].label}
             </Badge>
             <Badge tone="neutral">{difficulty}</Badge>
           </div>
-          <p className="pt-1 text-caption text-cocoa/60">☀️ {light}</p>
+          <p className="mt-auto line-clamp-1 pt-1 text-caption text-cocoa/60">☀️ {light}</p>
         </div>
       </Card>
     </Link>
