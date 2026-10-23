@@ -94,30 +94,37 @@ sur la plante) pour que l'expérience de démo reste cohérente d'un rafraîchis
    types `PlantIdentification`, `HealthObservation`, `Recommendation`,
    `BloomMessage`.
 
-## Refonte IA — Bloom Vision (Claude)
+## Refonte IA — Bloom Vision
 
-Plan en 12 étapes pour remplacer Plant.id par un fournisseur Claude
-(Anthropic) unifié, suivi avec l'utilisateur. État actuel :
+Plan en 12 étapes pour remplacer Plant.id par un fournisseur unifié basé
+sur un LLM multimodal, suivi avec l'utilisateur. État actuel :
 
 1. ✅ Contrat cible défini (`src/lib/ai/vision/bloom-contract.ts`) —
    `BloomAnalysisInput`/`BloomAnalysisOutput`, plus riche que
    `PlantVisionProvider` (mémoire de la plante, hypothèses, questions).
    Pas encore implémenté ni branché.
-2. ✅ `BloomVisionProvider` (`src/lib/ai/vision/bloom-vision-provider.ts`) —
-   implémente pour l'instant la même interface étroite que
+2. ✅ `BloomVisionProvider` (Claude) et `GeminiVisionProvider` (Google) —
+   implémentent pour l'instant la même interface étroite que
    `PlantIdVisionProvider` (identification + santé, sans contexte enrichi),
-   pour rester un remplacement direct sans toucher au Scanner. Activé via
-   `AI_PROVIDER=bloom` + `ANTHROPIC_API_KEY`. Appelle directement l'API
-   Messages d'Anthropic (`fetch`, pas de SDK) avec l'image en pièce jointe et
-   exige une réponse JSON stricte, validée avec Zod avant d'entrer dans le
-   reste de l'app.
-3. ⬜ Comparer Plant.id et Bloom Vision sur un même jeu de photos (étape 9)
-   avant d'envisager de retirer `plantid-vision-provider.ts` (étape 10).
-4. ⬜ Étendre `BloomVisionProvider` (ou un nouveau provider) pour consommer
-   le contrat riche de `bloom-contract.ts` — mémoire de la plante,
-   hypothèses, recommandations, questions en un seul appel — et remplacer
-   `BloomReasoningProvider` (étapes 6 à 8).
+   pour rester un remplacement direct sans toucher au Scanner. Schémas,
+   prompts et extraction JSON partagés dans `shared-llm-vision.ts` pour que
+   les deux fournisseurs restent comparables (étape 9).
+   - **Gemini** (`AI_PROVIDER=gemini` + `GEMINI_API_KEY`) : choisi par
+     défaut par l'utilisateur pour son palier gratuit permanent (pas un
+     essai limité dans le temps, pas de carte bancaire requise). Clé créée
+     sur https://aistudio.google.com/apikey.
+   - **Claude** (`AI_PROVIDER=bloom` + `ANTHROPIC_API_KEY`) : payant à
+     l'usage, qualité de raisonnement supérieure — option de secours si les
+     quotas gratuits de Gemini deviennent insuffisants.
+3. ⬜ Comparer Plant.id, Gemini et Claude sur un même jeu de photos
+   (étape 9) avant d'envisager de retirer `plantid-vision-provider.ts`
+   (étape 10).
+4. ⬜ Étendre le fournisseur retenu pour consommer le contrat riche de
+   `bloom-contract.ts` — mémoire de la plante, hypothèses, recommandations,
+   questions en un seul appel — et remplacer `BloomReasoningProvider`
+   (étapes 6 à 8).
 
 `AI_PROVIDER` reste `mock` par défaut : ce choix n'affecte aucun
 déploiement existant tant qu'il n'est pas explicitement activé.
+
 
