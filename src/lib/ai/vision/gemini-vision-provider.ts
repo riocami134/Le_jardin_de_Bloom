@@ -2,21 +2,24 @@ import type { HealthObservation, PlantIdentification } from "@/types";
 import type { PlantVisionInput, PlantVisionProvider } from "./types";
 import { healthSchema, identificationSchema, IDENTIFY_PROMPT, healthPrompt, toBase64Data, extractJson } from "./shared-llm-vision";
 
-const REQUEST_TIMEOUT_MS = 30_000;
-// L'alias "gemini-flash-latest" pointe vers le modèle flash le plus récent
-// de Google (actuellement "Gemini 3.8 Flash", à peine sorti) — exactement
-// le modèle le plus demandé du moment sur l'API publique gratuite, d'où des
-// 503 "high demand" persistants (confirmé : fonctionne sans souci dans
-// Google AI Studio, qui a sa propre capacité réservée, séparée de l'API
-// publique). On épingle plutôt un modèle établi depuis longtemps, moins
-// sollicité et donc plus fiable sur le palier gratuit.
-const DEFAULT_MODEL = "gemini-2.5-flash";
+const REQUEST_TIMEOUT_MS = 20_000;
+// gemini-2.5-flash répond 404 "no longer available to new users" pour un
+// compte Gemini récent (confirmé en production) : pour ces comptes, seul
+// gemini-3.8-flash — tout juste sorti — est accessible. C'est aussi, de ce
+// fait, le modèle le plus demandé du moment sur l'API publique gratuite
+// (503 "high demand" fréquents, alors que le même compte fonctionne sans
+// souci dans Google AI Studio, qui a sa propre capacité réservée). Pas
+// d'alternative tant que Google n'ouvre pas d'autres modèles à ces comptes
+// ou ne stabilise pas la capacité de celui-ci — on compense par des
+// nouvelles tentatives plus généreuses (voir maxDuration=60 sur les routes
+// /api/scanner/*).
+const DEFAULT_MODEL = "gemini-3.8-flash";
 // Le palier gratuit de Gemini est partagé entre tous les utilisateurs et
 // répond parfois 503 "high demand" / 429 "rate limited" sous forte charge —
 // transitoire, pas une vraie panne. On retente avant d'abandonner.
 const RETRYABLE_STATUS = new Set([429, 503]);
-const MAX_ATTEMPTS = 3;
-const RETRY_DELAYS_MS = [1_000, 2_500];
+const MAX_ATTEMPTS = 4;
+const RETRY_DELAYS_MS = [1_500, 3_000, 5_000];
 
 interface GeminiPart {
   text?: string;
