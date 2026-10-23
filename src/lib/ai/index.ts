@@ -2,6 +2,7 @@ import { getEnv } from "@/config/env";
 import { MockVisionProvider } from "./vision/mock-vision-provider";
 import { PlantIdVisionProvider } from "./vision/plantid-vision-provider";
 import { BloomVisionProvider } from "./vision/bloom-vision-provider";
+import { GeminiVisionProvider } from "./vision/gemini-vision-provider";
 import { MockBloomProvider } from "./bloom/mock-bloom-provider";
 import type { PlantVisionProvider } from "./vision/types";
 import type { BloomReasoningProvider } from "./bloom/types";
@@ -12,6 +13,11 @@ let bloomProvider: BloomReasoningProvider | null = null;
 export function getVisionProvider(): PlantVisionProvider {
   if (visionProvider) return visionProvider;
   const env = getEnv();
+  if (env.AI_PROVIDER === "gemini") {
+    // env.ts garantit GEMINI_API_KEY non vide quand AI_PROVIDER=gemini.
+    visionProvider = new GeminiVisionProvider(env.GEMINI_API_KEY!);
+    return visionProvider;
+  }
   if (env.AI_PROVIDER === "bloom") {
     // env.ts garantit ANTHROPIC_API_KEY non vide quand AI_PROVIDER=bloom.
     visionProvider = new BloomVisionProvider(env.ANTHROPIC_API_KEY!);
