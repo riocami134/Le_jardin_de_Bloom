@@ -4,6 +4,11 @@ import { getVisionProvider } from "@/lib/ai";
 import { validateImageFile } from "@/lib/validation/upload";
 import { toFriendlyMessage } from "@/lib/errors";
 
+// Au-delà de la limite par défaut (10s sur le plan Hobby) : le fournisseur
+// IA retente automatiquement en cas de surcharge temporaire (ex. 503 "high
+// demand" sur le palier gratuit de Gemini), ce qui peut dépasser 10s.
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   try {
     await requireUserId();
