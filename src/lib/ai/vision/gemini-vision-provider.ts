@@ -3,7 +3,10 @@ import type { PlantVisionInput, PlantVisionProvider } from "./types";
 import { healthSchema, identificationSchema, IDENTIFY_PROMPT, healthPrompt, toBase64Data, extractJson } from "./shared-llm-vision";
 
 const REQUEST_TIMEOUT_MS = 30_000;
-const DEFAULT_MODEL = "gemini-2.0-flash";
+// Google a retiré gemini-2.0-flash (erreur 404 "no longer available") et
+// recommande explicitement gemini-3.8-flash à la place (vu en production,
+// 2026-10) — reste un modèle "flash", donc toujours dans le palier gratuit.
+const DEFAULT_MODEL = "gemini-3.8-flash";
 
 interface GeminiPart {
   text?: string;
