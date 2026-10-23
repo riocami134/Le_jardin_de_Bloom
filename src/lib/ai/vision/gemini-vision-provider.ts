@@ -3,12 +3,14 @@ import type { PlantVisionInput, PlantVisionProvider } from "./types";
 import { healthSchema, identificationSchema, IDENTIFY_PROMPT, healthPrompt, toBase64Data, extractJson } from "./shared-llm-vision";
 
 const REQUEST_TIMEOUT_MS = 30_000;
-// Un nom de modèle épinglé à une version précise (ex. "gemini-3.8-flash")
-// peut être retiré du jour au lendemain (déjà arrivé avec gemini-2.0-flash)
-// et semble bien plus sujet aux pics de demande qu'un modèle déjà établi.
-// L'alias "-latest" pointe toujours vers le modèle flash stable courant de
-// Google, sans jamais nécessiter de mise à jour manuelle de ce fichier.
-const DEFAULT_MODEL = "gemini-flash-latest";
+// L'alias "gemini-flash-latest" pointe vers le modèle flash le plus récent
+// de Google (actuellement "Gemini 3.8 Flash", à peine sorti) — exactement
+// le modèle le plus demandé du moment sur l'API publique gratuite, d'où des
+// 503 "high demand" persistants (confirmé : fonctionne sans souci dans
+// Google AI Studio, qui a sa propre capacité réservée, séparée de l'API
+// publique). On épingle plutôt un modèle établi depuis longtemps, moins
+// sollicité et donc plus fiable sur le palier gratuit.
+const DEFAULT_MODEL = "gemini-2.5-flash";
 // Le palier gratuit de Gemini est partagé entre tous les utilisateurs et
 // répond parfois 503 "high demand" / 429 "rate limited" sous forte charge —
 // transitoire, pas une vraie panne. On retente avant d'abandonner.
