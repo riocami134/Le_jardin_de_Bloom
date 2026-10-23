@@ -17,13 +17,19 @@ const envSchema = z.object({
   STORAGE_ACCESS_KEY: z.string().optional(),
   STORAGE_SECRET_KEY: z.string().optional(),
   STORAGE_BUCKET: z.string().optional(),
-  AI_PROVIDER: z.preprocess(emptyToUndefined, z.enum(["mock", "real"]).default("mock")),
+  AI_PROVIDER: z.preprocess(emptyToUndefined, z.enum(["mock", "real", "bloom"]).default("mock")),
   AI_API_KEY: z.preprocess(emptyToUndefined, z.string().optional()),
+  // Clé séparée de AI_API_KEY (Plant.id) : les deux fournisseurs peuvent
+  // coexister pendant la phase de comparaison (étape 9 du plan de refonte IA).
+  ANTHROPIC_API_KEY: z.preprocess(emptyToUndefined, z.string().optional()),
   WEATHER_PROVIDER: z.preprocess(emptyToUndefined, z.enum(["mock", "real"]).default("mock")),
   WEATHER_API_KEY: z.preprocess(emptyToUndefined, z.string().optional()),
 }).refine((data) => data.AI_PROVIDER !== "real" || Boolean(data.AI_API_KEY), {
   message: "AI_API_KEY est requis quand AI_PROVIDER=real (clé de l'API Plant.id).",
   path: ["AI_API_KEY"],
+}).refine((data) => data.AI_PROVIDER !== "bloom" || Boolean(data.ANTHROPIC_API_KEY), {
+  message: "ANTHROPIC_API_KEY est requis quand AI_PROVIDER=bloom.",
+  path: ["ANTHROPIC_API_KEY"],
 });
 
 export type Env = z.infer<typeof envSchema>;
