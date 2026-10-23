@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GeminiVisionProvider } from "@/lib/ai/vision/gemini-vision-provider";
 
 function mockFetchOnce(status: number, body: unknown) {
@@ -13,7 +13,12 @@ function mockFetchOnce(status: number, body: unknown) {
 }
 
 describe("GeminiVisionProvider", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
   afterEach(() => {
+    vi.useRealTimers();
     vi.unstubAllGlobals();
   });
 
@@ -77,6 +82,40 @@ describe("GeminiVisionProvider", () => {
 
     const provider = new GeminiVisionProvider("fake-key");
     await expect(provider.identifyPlant({ imageBase64: "aGVsbG8=", mimeType: "image/jpeg" })).rejects.toThrow(/400/);
+  });
+
+  it("retente automatiquement sur une erreur 503 (surcharge) puis réussit", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: false, status: 503, json: async () => ({ error: { message: "high demand" } }) })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          candidates: [
+            { content: { parts: [{ text: JSON.stringify({ scientificName: "Ocimum basilicum", commonName: "Basilic", confidence: 0.8 }) }] } },
+          ],
+        }),
+      });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const provider = new GeminiVisionProvider("fake-key");
+    const promise = provider.identifyPlant({ imageBase64: "aGVsbG8=", mimeType: "image/jpeg" });
+    await vi.advanceTimersByTimeAsync(5_000);
+    const result = await promise;
+
+    expect(result.commonName).toBe("Basilic");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("abandonne après plusieurs 503 consécutifs", async () => {
+    mockFetchOnce(503, { error: { message: "high demand" } });
+
+    const provider = new GeminiVisionProvider("fake-key");
+    const promise = provider.identifyPlant({ imageBase64: "aGVsbG8=", mimeType: "image/jpeg" });
+    const expectation = expect(promise).rejects.toThrow(/503/);
+    await vi.advanceTimersByTimeAsync(10_000);
+    await expectation;
   });
 
   it("retourne des observations de santé structurées et valides", async () => {

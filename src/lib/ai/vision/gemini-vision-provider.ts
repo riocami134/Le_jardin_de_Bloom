@@ -7,6 +7,12 @@ const REQUEST_TIMEOUT_MS = 30_000;
 // recommande explicitement gemini-3.8-flash à la place (vu en production,
 // 2026-10) — reste un modèle "flash", donc toujours dans le palier gratuit.
 const DEFAULT_MODEL = "gemini-3.8-flash";
+// Le palier gratuit de Gemini est partagé entre tous les utilisateurs et
+// répond parfois 503 "high demand" / 429 "rate limited" sous forte charge —
+// transitoire, pas une vraie panne. On retente avant d'abandonner.
+const RETRYABLE_STATUS = new Set([429, 503]);
+const MAX_ATTEMPTS = 3;
+const RETRY_DELAYS_MS = [1_000, 2_500];
 
 interface GeminiPart {
   text?: string;
@@ -17,7 +23,11 @@ interface GeminiResponse {
   error?: { message?: string };
 }
 
-async function callGeminiVision(params: { apiKey: string; model: string; prompt: string; input: PlantVisionInput }): Promise<unknown> {
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function callGeminiVisionOnce(params: { apiKey: string; model: string; prompt: string; input: PlantVisionInput }): Promise<unknown> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
@@ -40,7 +50,9 @@ async function callGeminiVision(params: { apiKey: string; model: string; prompt:
 
     const data = (await response.json()) as GeminiResponse;
     if (!response.ok) {
-      throw new Error(`Gemini a répondu ${response.status} : ${data.error?.message ?? "erreur inconnue"}`);
+      const error = new Error(`Gemini a répondu ${response.status} : ${data.error?.message ?? "erreur inconnue"}`);
+      (error as Error & { status?: number }).status = response.status;
+      throw error;
     }
 
     const text = data.candidates?.[0]?.content?.parts?.find((part) => part.text)?.text;
@@ -51,6 +63,23 @@ async function callGeminiVision(params: { apiKey: string; model: string; prompt:
   } finally {
     clearTimeout(timeout);
   }
+}
+
+async function callGeminiVision(params: { apiKey: string; model: string; prompt: string; input: PlantVisionInput }): Promise<unknown> {
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    try {
+      return await callGeminiVisionOnce(params);
+    } catch (error) {
+      const status = (error as Error & { status?: number }).status;
+      const isLastAttempt = attempt === MAX_ATTEMPTS - 1;
+      if (!status || !RETRYABLE_STATUS.has(status) || isLastAttempt) {
+        throw error;
+      }
+      await sleep(RETRY_DELAYS_MS[attempt] ?? 2_500);
+    }
+  }
+  // Inatteignable (la boucle retourne ou relance à chaque itération) — satisfait le typage.
+  throw new Error("Gemini n'a pas pu être appelé.");
 }
 
 /**
