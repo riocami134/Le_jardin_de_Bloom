@@ -118,6 +118,36 @@ describe("GeminiVisionProvider", () => {
     await expectation;
   });
 
+  it("retente aussi quand notre propre minuteur abandonne la requête (congestion probable)", async () => {
+    function abortError() {
+      const error = new Error("The operation was aborted.");
+      error.name = "AbortError";
+      return error;
+    }
+
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(abortError())
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          candidates: [
+            { content: { parts: [{ text: JSON.stringify({ scientificName: "Ocimum basilicum", commonName: "Basilic", confidence: 0.8 }) }] } },
+          ],
+        }),
+      });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const provider = new GeminiVisionProvider("fake-key");
+    const promise = provider.identifyPlant({ imageBase64: "aGVsbG8=", mimeType: "image/jpeg" });
+    await vi.advanceTimersByTimeAsync(5_000);
+    const result = await promise;
+
+    expect(result.commonName).toBe("Basilic");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it("retourne des observations de santé structurées et valides", async () => {
     mockFetchOnce(200, {
       candidates: [
