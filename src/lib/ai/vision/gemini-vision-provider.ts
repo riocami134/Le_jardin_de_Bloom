@@ -2,7 +2,7 @@ import type { HealthObservation, PlantIdentification } from "@/types";
 import type { PlantVisionInput, PlantVisionProvider } from "./types";
 import { healthSchema, identificationSchema, IDENTIFY_PROMPT, healthPrompt, toBase64Data, extractJson } from "./shared-llm-vision";
 
-const REQUEST_TIMEOUT_MS = 20_000;
+const REQUEST_TIMEOUT_MS = 10_000;
 // gemini-2.5-flash répond 404 "no longer available to new users" pour un
 // compte Gemini récent (confirmé en production) : pour ces comptes, seul
 // gemini-3.8-flash — tout juste sorti — est accessible. C'est aussi, de ce
@@ -11,15 +11,20 @@ const REQUEST_TIMEOUT_MS = 20_000;
 // souci dans Google AI Studio, qui a sa propre capacité réservée). Pas
 // d'alternative tant que Google n'ouvre pas d'autres modèles à ces comptes
 // ou ne stabilise pas la capacité de celui-ci — on compense par des
-// nouvelles tentatives plus généreuses (voir maxDuration=60 sur les routes
-// /api/scanner/*).
+// nouvelles tentatives (voir maxDuration=60 sur les routes /api/scanner/*).
 const DEFAULT_MODEL = "gemini-3.8-flash";
 // Le palier gratuit de Gemini est partagé entre tous les utilisateurs et
 // répond parfois 503 "high demand" / 429 "rate limited" sous forte charge —
 // transitoire, pas une vraie panne. On retente avant d'abandonner.
+//
+// Budget total dans le pire cas : 3 × REQUEST_TIMEOUT_MS (30s) + somme des
+// délais (4.5s) ≈ 34.5s — volontairement bien en dessous de maxDuration=60
+// sur les routes appelantes. Un budget trop proche de la limite ferait tuer
+// la fonction par Vercel en pleine tentative, ce qui ressort comme une
+// AbortError opaque au lieu d'un message d'erreur clair.
 const RETRYABLE_STATUS = new Set([429, 503]);
-const MAX_ATTEMPTS = 4;
-const RETRY_DELAYS_MS = [1_500, 3_000, 5_000];
+const MAX_ATTEMPTS = 3;
+const RETRY_DELAYS_MS = [1_500, 3_000];
 
 interface GeminiPart {
   text?: string;
